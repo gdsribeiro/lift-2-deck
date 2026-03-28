@@ -1,0 +1,7 @@
+import client from "../api/client";
+import type { DashboardStats } from "../types";
+
+export async function getStats(): Promise<DashboardStats> {
+  const response = await client.get<DashboardStats>("/dashboard/stats");
+  return response.data;
+}
