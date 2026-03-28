@@ -1,0 +1,23 @@
+# Rust
+backend/target/
+backend/.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+mock-server/node_modules/
+
+# Playwright
+.playwright-mcp/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
