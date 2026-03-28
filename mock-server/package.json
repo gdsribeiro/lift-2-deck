@@ -1,0 +1,12 @@
+{
+  "name": "mock-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "json-server": "^0.17.4",
+    "uuid": "^11.1.0"
+  }
+}
