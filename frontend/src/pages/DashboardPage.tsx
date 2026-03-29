@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDumbbell, faFire } from "@fortawesome/free-solid-svg-icons";
@@ -30,6 +30,7 @@ export function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [chartData, setChartData] = useState<EvolutionDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     Promise.all([
@@ -182,9 +183,18 @@ export function DashboardPage() {
             <Link to="/plans" className="btn btn--secondary" style={{ flex: 1 }}>
               Criar Plano
             </Link>
-            <Link to="/treino" className="btn btn--primary" style={{ flex: 1 }}>
-              Treino Livre
-            </Link>
+            {activeSession ? (
+              <Link to="/session/active" className="btn btn--primary" style={{ flex: 1 }}>
+                Continuar Treino
+              </Link>
+            ) : (
+              <button className="btn btn--primary" style={{ flex: 1 }} onClick={async () => {
+                await sessionService.startSession();
+                navigate("/session/active");
+              }}>
+                Treino Livre
+              </button>
+            )}
           </div>
         </div>
       )}

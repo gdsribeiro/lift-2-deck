@@ -7,26 +7,26 @@ import {
   faGear,
 } from "@fortawesome/free-solid-svg-icons";
 
-const navItems = [
-  { to: "/", icon: faHome, label: "Home" },
-  { to: "/treino", icon: faDumbbell, label: "Treino" },
-  { to: "/progress", icon: faChartLine, label: "Progresso" },
-  { to: "/config", icon: faGear, label: "Configurações" },
-];
-
 export function BottomNav({ hasActiveSession }: { hasActiveSession: boolean }) {
+  const navItems = [
+    { to: "/", icon: faHome, label: "Home" },
+    { to: hasActiveSession ? "/session/active" : "/treino", icon: faDumbbell, label: "Treino" },
+    { to: "/progress", icon: faChartLine, label: "Progresso" },
+    { to: "/config", icon: faGear, label: "Configurações" },
+  ];
+
   return (
     <nav className="bottom-nav">
       {navItems.map((item) => (
         <NavLink
-          key={item.to}
+          key={item.label}
           to={item.to}
           end={item.to === "/"}
-          className={({ isActive }) => `nav-link${isActive ? " active" : ""}${item.to === "/treino" ? " nav-link--primary" : ""}`}
+          className={({ isActive }) => `nav-link${isActive ? " active" : ""}${item.label === "Treino" ? " nav-link--primary" : ""}`}
         >
           <span style={{ position: "relative" }}>
             <FontAwesomeIcon icon={item.icon} />
-            {item.to === "/treino" && hasActiveSession && (
+            {item.label === "Treino" && hasActiveSession && (
               <span className="nav-badge" />
             )}
           </span>
