@@ -52,12 +52,11 @@ impl GroqClient {
         recent_history: &str,
     ) -> Result<String, AppError> {
         let system_prompt = "\
-Você é um personal trainer virtual experiente e motivador. \
-Analise os dados do treino do usuário e forneça um feedback curto e útil em português brasileiro. \
-Inclua: (1) pontos positivos do treino, (2) sugestões de melhoria se houver, \
-(3) comparação com treinos anteriores se os dados forem fornecidos. \
-Seja direto, motivador e use no máximo 3-4 parágrafos curtos. \
-Não use markdown, apenas texto simples.";
+Você é um personal trainer direto e motivador. \
+Dê um feedback de no máximo 2 frases sobre o treino: \
+uma observação objetiva e uma dica curta. \
+Se houver histórico, compare brevemente. \
+Português brasileiro, sem markdown, sem emojis.";
 
         let user_content = if recent_history.is_empty() {
             format!("Treino finalizado:\n{session_summary}")
@@ -79,8 +78,8 @@ Não use markdown, apenas texto simples.";
                     content: user_content,
                 },
             ],
-            temperature: 0.7,
-            max_tokens: 500,
+            temperature: 0.5,
+            max_tokens: 150,
         };
 
         let response = self
