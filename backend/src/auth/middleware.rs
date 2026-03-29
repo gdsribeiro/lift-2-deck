@@ -6,10 +6,13 @@ use uuid::Uuid;
 
 use crate::errors::AppError;
 
+const JWT_ISSUER: &str = "lift2deck";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: Uuid,
     pub email: String,
+    pub iss: String,
     pub exp: u64,
 }
 
@@ -30,10 +33,13 @@ pub async fn jwt_validator(
 
     let token = credentials.token();
 
+    let mut validation = Validation::default();
+    validation.set_issuer(&[JWT_ISSUER]);
+
     match decode::<Claims>(
         token,
         &DecodingKey::from_secret(jwt_secret.as_bytes()),
-        &Validation::default(),
+        &validation,
     ) {
         Ok(token_data) => {
             let user = AuthenticatedUser {
@@ -54,6 +60,7 @@ pub fn generate_jwt(user_id: Uuid, email: &str, secret: &str) -> Result<(String,
     let claims = Claims {
         sub: user_id,
         email: email.to_string(),
+        iss: JWT_ISSUER.to_string(),
         exp,
     };
 

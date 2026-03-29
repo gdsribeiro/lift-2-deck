@@ -1,6 +1,6 @@
 [package]
 name = "gym-tracker-backend"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 
 [dependencies]
@@ -20,4 +20,4 @@ bigdecimal = { version = "0.4", features = ["serde"] }
 actix-web-httpauth = "0.8"
 cookie = "0.18"
 env_logger = "0.11"
-bcrypt = "0.17"
+actix-governor = "0.6"
