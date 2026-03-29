@@ -7,352 +7,73 @@
     }
   ],
   "plans": [
-    {
-      "id": "p1",
-      "user_id": "u1",
-      "name": "Push Pull Legs",
-      "description": "Treino classico de 6 dias",
-      "created_at": "2026-03-01T10:00:00Z"
-    },
-    {
-      "id": "p2",
-      "user_id": "u1",
-      "name": "Upper Lower",
-      "description": null,
-      "created_at": "2026-03-10T08:00:00Z"
-    }
-  ],
-  "series": [
-    {
-      "id": "s1",
-      "plan_id": "p1",
-      "name": "Push A",
-      "order_index": 0
-    },
-    {
-      "id": "s2",
-      "plan_id": "p1",
-      "name": "Pull A",
-      "order_index": 1
-    },
-    {
-      "id": "s3",
-      "plan_id": "p1",
-      "name": "Legs A",
-      "order_index": 2
-    },
-    {
-      "id": "s4",
-      "plan_id": "p2",
-      "name": "Upper",
-      "order_index": 0
-    },
-    {
-      "id": "s5",
-      "plan_id": "p2",
-      "name": "Lower",
-      "order_index": 1
-    }
+    { "id": "p1", "user_id": "u1", "name": "Push A", "created_at": "2026-03-01T10:00:00Z" },
+    { "id": "p2", "user_id": "u1", "name": "Pull A", "created_at": "2026-03-01T10:00:00Z" },
+    { "id": "p3", "user_id": "u1", "name": "Legs A", "created_at": "2026-03-01T10:00:00Z" },
+    { "id": "p4", "user_id": "u1", "name": "Upper", "created_at": "2026-03-10T08:00:00Z" },
+    { "id": "p5", "user_id": "u1", "name": "Lower", "created_at": "2026-03-10T08:00:00Z" }
   ],
   "exercises": [
-    {
-      "id": "e1",
-      "series_id": "s1",
-      "name": "Supino Reto",
-      "muscle_group": "Peito",
-      "sets": 4,
-      "reps_target": "8-12",
-      "rest_seconds": 90,
-      "notes": null,
-      "order_index": 0
-    },
-    {
-      "id": "e2",
-      "series_id": "s1",
-      "name": "Desenvolvimento com Halteres",
-      "muscle_group": "Ombro",
-      "sets": 3,
-      "reps_target": "10-12",
-      "rest_seconds": 60,
-      "notes": null,
-      "order_index": 1
-    },
-    {
-      "id": "e3",
-      "series_id": "s1",
-      "name": "Triceps Pulley",
-      "muscle_group": "Triceps",
-      "sets": 3,
-      "reps_target": "12-15",
-      "rest_seconds": 60,
-      "notes": "Pegada pronada",
-      "order_index": 2
-    },
-    {
-      "id": "e4",
-      "series_id": "s2",
-      "name": "Barra Fixa",
-      "muscle_group": "Costas",
-      "sets": 4,
-      "reps_target": "6-10",
-      "rest_seconds": 120,
-      "notes": null,
-      "order_index": 0
-    },
-    {
-      "id": "e5",
-      "series_id": "s2",
-      "name": "Remada Curvada",
-      "muscle_group": "Costas",
-      "sets": 4,
-      "reps_target": "8-12",
-      "rest_seconds": 90,
-      "notes": null,
-      "order_index": 1
-    },
-    {
-      "id": "e6",
-      "series_id": "s2",
-      "name": "Rosca Direta",
-      "muscle_group": "Biceps",
-      "sets": 3,
-      "reps_target": "10-12",
-      "rest_seconds": 60,
-      "notes": null,
-      "order_index": 2
-    },
-    {
-      "id": "e7",
-      "series_id": "s3",
-      "name": "Agachamento Livre",
-      "muscle_group": "Quadriceps",
-      "sets": 4,
-      "reps_target": "6-10",
-      "rest_seconds": 120,
-      "notes": "Profundidade completa",
-      "order_index": 0
-    },
-    {
-      "id": "e8",
-      "series_id": "s3",
-      "name": "Leg Press 45",
-      "muscle_group": "Quadriceps",
-      "sets": 4,
-      "reps_target": "10-12",
-      "rest_seconds": 90,
-      "notes": null,
-      "order_index": 1
-    },
-    {
-      "id": "e9",
-      "series_id": "s3",
-      "name": "Stiff",
-      "muscle_group": "Posterior",
-      "sets": 3,
-      "reps_target": "10-12",
-      "rest_seconds": 90,
-      "notes": null,
-      "order_index": 2
-    },
-    {
-      "id": "e10",
-      "series_id": "s4",
-      "name": "Supino Inclinado",
-      "muscle_group": "Peito",
-      "sets": 4,
-      "reps_target": "8-12",
-      "rest_seconds": 90,
-      "notes": null,
-      "order_index": 0
-    },
-    {
-      "id": "e11",
-      "series_id": "s5",
-      "name": "Agachamento Hack",
-      "muscle_group": "Quadriceps",
-      "sets": 4,
-      "reps_target": "8-12",
-      "rest_seconds": 90,
-      "notes": null,
-      "order_index": 0
-    }
+    { "id": "e1", "plan_id": "p1", "name": "Supino Reto", "muscle_group": "Peito", "exercise_type": "strength", "sets": 4, "reps_target": "8-12", "rest_seconds": 90, "notes": null, "order_index": 0 },
+    { "id": "e2", "plan_id": "p1", "name": "Desenvolvimento com Halteres", "muscle_group": "Ombro", "exercise_type": "strength", "sets": 3, "reps_target": "10-12", "rest_seconds": 60, "notes": null, "order_index": 1 },
+    { "id": "e3", "plan_id": "p1", "name": "Triceps Pulley", "muscle_group": "Triceps", "exercise_type": "strength", "sets": 3, "reps_target": "12-15", "rest_seconds": 60, "notes": "Pegada pronada", "order_index": 2 },
+    { "id": "e4", "plan_id": "p2", "name": "Barra Fixa", "muscle_group": "Costas", "exercise_type": "strength", "sets": 4, "reps_target": "6-10", "rest_seconds": 120, "notes": null, "order_index": 0 },
+    { "id": "e5", "plan_id": "p2", "name": "Remada Curvada", "muscle_group": "Costas", "exercise_type": "strength", "sets": 4, "reps_target": "8-12", "rest_seconds": 90, "notes": null, "order_index": 1 },
+    { "id": "e6", "plan_id": "p2", "name": "Rosca Direta", "muscle_group": "Biceps", "exercise_type": "strength", "sets": 3, "reps_target": "10-12", "rest_seconds": 60, "notes": null, "order_index": 2 },
+    { "id": "e7", "plan_id": "p3", "name": "Agachamento Livre", "muscle_group": "Quadriceps", "exercise_type": "strength", "sets": 4, "reps_target": "6-10", "rest_seconds": 120, "notes": "Profundidade completa", "order_index": 0 },
+    { "id": "e8", "plan_id": "p3", "name": "Leg Press 45", "muscle_group": "Quadriceps", "exercise_type": "strength", "sets": 4, "reps_target": "10-12", "rest_seconds": 90, "notes": null, "order_index": 1 },
+    { "id": "e9", "plan_id": "p3", "name": "Stiff", "muscle_group": "Posterior", "exercise_type": "strength", "sets": 3, "reps_target": "10-12", "rest_seconds": 90, "notes": null, "order_index": 2 },
+    { "id": "e10", "plan_id": "p4", "name": "Supino Inclinado", "muscle_group": "Peito", "exercise_type": "strength", "sets": 4, "reps_target": "8-12", "rest_seconds": 90, "notes": null, "order_index": 0 },
+    { "id": "e11", "plan_id": "p5", "name": "Agachamento Hack", "muscle_group": "Quadriceps", "exercise_type": "strength", "sets": 4, "reps_target": "8-12", "rest_seconds": 90, "notes": null, "order_index": 0 }
   ],
   "sessions": [
-    {
-      "id": "ss1",
-      "user_id": "u1",
-      "series_id": "s1",
-      "started_at": "2026-03-25T14:00:00Z",
-      "finished_at": "2026-03-25T15:20:00Z",
-      "notes": "Bom treino, aumentei carga no supino"
-    },
-    {
-      "id": "ss2",
-      "user_id": "u1",
-      "series_id": "s2",
-      "started_at": "2026-03-26T14:00:00Z",
-      "finished_at": "2026-03-26T15:10:00Z",
-      "notes": null
-    },
-    {
-      "id": "ss3",
-      "user_id": "u1",
-      "series_id": "s3",
-      "started_at": "2026-03-27T14:00:00Z",
-      "finished_at": "2026-03-27T15:30:00Z",
-      "notes": "Dia de perna pesado"
-    }
+    { "id": "ss1", "user_id": "u1", "plan_id": "p1", "started_at": "2026-03-25T14:00:00Z", "finished_at": "2026-03-25T15:20:00Z", "notes": "Bom treino, aumentei carga no supino", "ai_feedback": null },
+    { "id": "ss2", "user_id": "u1", "plan_id": "p2", "started_at": "2026-03-26T14:00:00Z", "finished_at": "2026-03-26T15:10:00Z", "notes": null, "ai_feedback": null },
+    { "id": "ss3", "user_id": "u1", "plan_id": "p3", "started_at": "2026-03-27T14:00:00Z", "finished_at": "2026-03-27T15:30:00Z", "notes": "Dia de perna pesado", "ai_feedback": null }
   ],
   "logs": [
-    {
-      "id": "l1",
-      "session_id": "ss1",
-      "exercise_id": "e1",
-      "exercise_name": "Supino Reto",
-      "set_number": 1,
-      "weight_kg": 80,
-      "reps": 10,
-      "logged_at": "2026-03-25T14:05:00Z"
-    },
-    {
-      "id": "l2",
-      "session_id": "ss1",
-      "exercise_id": "e1",
-      "exercise_name": "Supino Reto",
-      "set_number": 2,
-      "weight_kg": 80,
-      "reps": 9,
-      "logged_at": "2026-03-25T14:08:00Z"
-    },
-    {
-      "id": "l3",
-      "session_id": "ss1",
-      "exercise_id": "e1",
-      "exercise_name": "Supino Reto",
-      "set_number": 3,
-      "weight_kg": 80,
-      "reps": 8,
-      "logged_at": "2026-03-25T14:11:00Z"
-    },
-    {
-      "id": "l4",
-      "session_id": "ss1",
-      "exercise_id": "e2",
-      "exercise_name": "Desenvolvimento com Halteres",
-      "set_number": 1,
-      "weight_kg": 20,
-      "reps": 12,
-      "logged_at": "2026-03-25T14:20:00Z"
-    },
-    {
-      "id": "l5",
-      "session_id": "ss2",
-      "exercise_id": "e4",
-      "exercise_name": "Barra Fixa",
-      "set_number": 1,
-      "weight_kg": null,
-      "reps": 10,
-      "logged_at": "2026-03-26T14:05:00Z"
-    },
-    {
-      "id": "l6",
-      "session_id": "ss2",
-      "exercise_id": "e4",
-      "exercise_name": "Barra Fixa",
-      "set_number": 2,
-      "weight_kg": null,
-      "reps": 8,
-      "logged_at": "2026-03-26T14:09:00Z"
-    },
-    {
-      "id": "l7",
-      "session_id": "ss3",
-      "exercise_id": "e7",
-      "exercise_name": "Agachamento Livre",
-      "set_number": 1,
-      "weight_kg": 100,
-      "reps": 8,
-      "logged_at": "2026-03-27T14:05:00Z"
-    },
-    {
-      "id": "l8",
-      "session_id": "ss3",
-      "exercise_id": "e7",
-      "exercise_name": "Agachamento Livre",
-      "set_number": 2,
-      "weight_kg": 100,
-      "reps": 7,
-      "logged_at": "2026-03-27T14:09:00Z"
-    },
-    {
-      "id": "l9",
-      "session_id": "ss3",
-      "exercise_id": "e8",
-      "exercise_name": "Leg Press 45",
-      "set_number": 1,
-      "weight_kg": 200,
-      "reps": 12,
-      "logged_at": "2026-03-27T14:25:00Z"
-    }
-  ],
-  "cardio": [
-    {
-      "id": "c1",
-      "user_id": "u1",
-      "activity": "Corrida",
-      "duration_min": 30,
-      "distance_km": 5.2,
-      "pace_min_km": 5.77,
-      "logged_at": "2026-03-20T07:00:00Z",
-      "notes": "Ritmo confortavel"
-    },
-    {
-      "id": "c2",
-      "user_id": "u1",
-      "activity": "Bicicleta",
-      "duration_min": 45,
-      "distance_km": 15,
-      "pace_min_km": 3.0,
-      "logged_at": "2026-03-22T07:00:00Z",
-      "notes": null
-    },
-    {
-      "id": "c3",
-      "user_id": "u1",
-      "activity": "Caminhada",
-      "duration_min": 60,
-      "distance_km": 5.0,
-      "pace_min_km": 12.0,
-      "logged_at": "2026-03-24T07:00:00Z",
-      "notes": "Recuperacao ativa"
-    }
+    { "id": "l1", "session_id": "ss1", "exercise_id": "e1", "exercise_name": "Supino Reto", "set_number": 1, "weight_kg": 80, "reps": 10, "duration_min": null, "distance_km": null, "logged_at": "2026-03-25T14:05:00Z" },
+    { "id": "l2", "session_id": "ss1", "exercise_id": "e1", "exercise_name": "Supino Reto", "set_number": 2, "weight_kg": 80, "reps": 9, "duration_min": null, "distance_km": null, "logged_at": "2026-03-25T14:08:00Z" },
+    { "id": "l3", "session_id": "ss1", "exercise_id": "e1", "exercise_name": "Supino Reto", "set_number": 3, "weight_kg": 80, "reps": 8, "duration_min": null, "distance_km": null, "logged_at": "2026-03-25T14:11:00Z" },
+    { "id": "l4", "session_id": "ss1", "exercise_id": "e2", "exercise_name": "Desenvolvimento com Halteres", "set_number": 1, "weight_kg": 20, "reps": 12, "duration_min": null, "distance_km": null, "logged_at": "2026-03-25T14:20:00Z" },
+    { "id": "l5", "session_id": "ss2", "exercise_id": "e4", "exercise_name": "Barra Fixa", "set_number": 1, "weight_kg": null, "reps": 10, "duration_min": null, "distance_km": null, "logged_at": "2026-03-26T14:05:00Z" },
+    { "id": "l6", "session_id": "ss2", "exercise_id": "e4", "exercise_name": "Barra Fixa", "set_number": 2, "weight_kg": null, "reps": 8, "duration_min": null, "distance_km": null, "logged_at": "2026-03-26T14:09:00Z" },
+    { "id": "l7", "session_id": "ss3", "exercise_id": "e7", "exercise_name": "Agachamento Livre", "set_number": 1, "weight_kg": 100, "reps": 8, "duration_min": null, "distance_km": null, "logged_at": "2026-03-27T14:05:00Z" },
+    { "id": "l8", "session_id": "ss3", "exercise_id": "e7", "exercise_name": "Agachamento Livre", "set_number": 2, "weight_kg": 100, "reps": 7, "duration_min": null, "distance_km": null, "logged_at": "2026-03-27T14:09:00Z" },
+    { "id": "l9", "session_id": "ss3", "exercise_id": "e8", "exercise_name": "Leg Press 45", "set_number": 1, "weight_kg": 200, "reps": 12, "duration_min": null, "distance_km": null, "logged_at": "2026-03-27T14:25:00Z" }
   ],
   "catalog": [
-    { "id": "cat1", "name": "Supino Reto", "category": "Peito" },
-    { "id": "cat2", "name": "Supino Inclinado", "category": "Peito" },
-    { "id": "cat3", "name": "Supino Declinado", "category": "Peito" },
-    { "id": "cat4", "name": "Crucifixo", "category": "Peito" },
-    { "id": "cat5", "name": "Crossover", "category": "Peito" },
-    { "id": "cat6", "name": "Barra Fixa", "category": "Costas" },
-    { "id": "cat7", "name": "Remada Curvada", "category": "Costas" },
-    { "id": "cat8", "name": "Remada Unilateral", "category": "Costas" },
-    { "id": "cat9", "name": "Puxada Frontal", "category": "Costas" },
-    { "id": "cat10", "name": "Pulldown", "category": "Costas" },
-    { "id": "cat11", "name": "Agachamento Livre", "category": "Pernas" },
-    { "id": "cat12", "name": "Leg Press 45", "category": "Pernas" },
-    { "id": "cat13", "name": "Cadeira Extensora", "category": "Pernas" },
-    { "id": "cat14", "name": "Mesa Flexora", "category": "Pernas" },
-    { "id": "cat15", "name": "Stiff", "category": "Pernas" },
-    { "id": "cat16", "name": "Panturrilha em Pe", "category": "Pernas" },
-    { "id": "cat17", "name": "Desenvolvimento Militar", "category": "Ombros" },
-    { "id": "cat18", "name": "Elevacao Lateral", "category": "Ombros" },
-    { "id": "cat19", "name": "Elevacao Frontal", "category": "Ombros" },
-    { "id": "cat20", "name": "Face Pull", "category": "Ombros" },
-    { "id": "cat21", "name": "Rosca Direta", "category": "Bracos" },
-    { "id": "cat22", "name": "Rosca Martelo", "category": "Bracos" },
-    { "id": "cat23", "name": "Rosca Scott", "category": "Bracos" },
-    { "id": "cat24", "name": "Triceps Pulley", "category": "Bracos" },
-    { "id": "cat25", "name": "Triceps Testa", "category": "Bracos" },
-    { "id": "cat26", "name": "Triceps Frances", "category": "Bracos" }
+    { "id": "cat1", "name": "Supino Reto", "category": "Peito", "exercise_type": "strength" },
+    { "id": "cat2", "name": "Supino Inclinado", "category": "Peito", "exercise_type": "strength" },
+    { "id": "cat3", "name": "Supino Declinado", "category": "Peito", "exercise_type": "strength" },
+    { "id": "cat4", "name": "Crucifixo", "category": "Peito", "exercise_type": "strength" },
+    { "id": "cat5", "name": "Crossover", "category": "Peito", "exercise_type": "strength" },
+    { "id": "cat6", "name": "Barra Fixa", "category": "Costas", "exercise_type": "strength" },
+    { "id": "cat7", "name": "Remada Curvada", "category": "Costas", "exercise_type": "strength" },
+    { "id": "cat8", "name": "Remada Unilateral", "category": "Costas", "exercise_type": "strength" },
+    { "id": "cat9", "name": "Puxada Frontal", "category": "Costas", "exercise_type": "strength" },
+    { "id": "cat10", "name": "Pulldown", "category": "Costas", "exercise_type": "strength" },
+    { "id": "cat11", "name": "Agachamento Livre", "category": "Pernas", "exercise_type": "strength" },
+    { "id": "cat12", "name": "Leg Press 45", "category": "Pernas", "exercise_type": "strength" },
+    { "id": "cat13", "name": "Cadeira Extensora", "category": "Pernas", "exercise_type": "strength" },
+    { "id": "cat14", "name": "Mesa Flexora", "category": "Pernas", "exercise_type": "strength" },
+    { "id": "cat15", "name": "Stiff", "category": "Pernas", "exercise_type": "strength" },
+    { "id": "cat16", "name": "Panturrilha em Pe", "category": "Pernas", "exercise_type": "strength" },
+    { "id": "cat17", "name": "Desenvolvimento Militar", "category": "Ombros", "exercise_type": "strength" },
+    { "id": "cat18", "name": "Elevacao Lateral", "category": "Ombros", "exercise_type": "strength" },
+    { "id": "cat19", "name": "Elevacao Frontal", "category": "Ombros", "exercise_type": "strength" },
+    { "id": "cat20", "name": "Face Pull", "category": "Ombros", "exercise_type": "strength" },
+    { "id": "cat21", "name": "Rosca Direta", "category": "Bracos", "exercise_type": "strength" },
+    { "id": "cat22", "name": "Rosca Martelo", "category": "Bracos", "exercise_type": "strength" },
+    { "id": "cat23", "name": "Rosca Scott", "category": "Bracos", "exercise_type": "strength" },
+    { "id": "cat24", "name": "Triceps Pulley", "category": "Bracos", "exercise_type": "strength" },
+    { "id": "cat25", "name": "Triceps Testa", "category": "Bracos", "exercise_type": "strength" },
+    { "id": "cat26", "name": "Triceps Frances", "category": "Bracos", "exercise_type": "strength" },
+    { "id": "cat27", "name": "Corrida", "category": "Cardio", "exercise_type": "cardio" },
+    { "id": "cat28", "name": "Bicicleta", "category": "Cardio", "exercise_type": "cardio" },
+    { "id": "cat29", "name": "Caminhada", "category": "Cardio", "exercise_type": "cardio" },
+    { "id": "cat30", "name": "Natacao", "category": "Cardio", "exercise_type": "cardio" },
+    { "id": "cat31", "name": "Eliptico", "category": "Cardio", "exercise_type": "cardio" },
+    { "id": "cat32", "name": "Pular Corda", "category": "Cardio", "exercise_type": "cardio" }
   ]
 }

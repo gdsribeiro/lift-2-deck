@@ -7,7 +7,6 @@ const middlewares = jsonServer.defaults({ noCors: false });
 
 const PORT = 8080;
 const FAKE_TOKEN = "mock-jwt-token-demo";
-const FAKE_REFRESH = "mock-refresh-token";
 
 server.use(middlewares);
 server.use(jsonServer.bodyParser);
@@ -48,11 +47,33 @@ server.get("/api/v1/auth/me", (_req, res) => {
   res.json({ id: user.id, email: user.email });
 });
 
+server.put("/api/v1/auth/profile", (req, res) => {
+  const db = router.db.getState();
+  const user = db.users[0];
+  if (req.body.email !== undefined) user.email = req.body.email;
+  router.db.setState(db);
+  res.json({ id: user.id, email: user.email });
+});
+
+server.put("/api/v1/auth/password", (req, res) => {
+  const db = router.db.getState();
+  const user = db.users[0];
+  if (req.body.current_password !== user.password) {
+    return res.status(400).json({ error: "Senha atual incorreta" });
+  }
+  user.password = req.body.new_password;
+  router.db.setState(db);
+  res.status(204).end();
+});
+
+server.delete("/api/v1/auth/account", (_req, res) => {
+  res.status(204).end();
+});
+
 // ─── Auth middleware (skip for auth routes) ─────────────────────────────────
 
 server.use("/api/v1", (req, res, next) => {
   if (req.path.startsWith("/auth")) return next();
-  // Accept any Bearer token for mock purposes
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -71,14 +92,12 @@ server.get("/api/v1/dashboard/stats", (_req, res) => {
 
   const finishedSessions = db.sessions.filter((s) => s.finished_at !== null);
 
-  // Days this week with at least one session
   const daysThisWeek = new Set(
     finishedSessions
       .filter((s) => new Date(s.started_at) >= startOfWeek)
       .map((s) => new Date(s.started_at).toISOString().split("T")[0])
   ).size;
 
-  // Weekly volume (sum of weight_kg * reps for this week's logs)
   const weekSessionIds = new Set(
     finishedSessions
       .filter((s) => new Date(s.started_at) >= startOfWeek)
@@ -88,7 +107,6 @@ server.get("/api/v1/dashboard/stats", (_req, res) => {
     .filter((l) => weekSessionIds.has(l.session_id))
     .reduce((sum, l) => sum + (l.weight_kg || 0) * (l.reps || 0), 0);
 
-  // Streak: consecutive days with sessions (counting backwards from today)
   const sessionDates = [
     ...new Set(
       finishedSessions.map((s) => new Date(s.started_at).toISOString().split("T")[0])
@@ -128,7 +146,7 @@ server.get("/api/v1/catalog", (req, res) => {
 
 server.post("/api/v1/catalog", (req, res) => {
   const db = router.db.getState();
-  const item = { id: uuid(), name: req.body.name, category: req.body.category };
+  const item = { id: uuid(), name: req.body.name, category: req.body.category, exercise_type: req.body.exercise_type || "strength" };
   db.catalog.push(item);
   router.db.setState(db);
   res.status(201).json(item);
@@ -154,18 +172,12 @@ server.get("/api/v1/plans/:planId", (req, res) => {
   const plan = db.plans.find((p) => p.id === req.params.planId);
   if (!plan) return res.status(404).json({ error: "Plan not found" });
 
-  const planSeries = db.series
-    .filter((s) => s.plan_id === plan.id)
-    .sort((a, b) => a.order_index - b.order_index)
-    .map((s) => ({
-      ...s,
-      exercises: db.exercises
-        .filter((e) => e.series_id === s.id)
-        .sort((a, b) => a.order_index - b.order_index),
-    }));
+  const exercises = db.exercises
+    .filter((e) => e.plan_id === plan.id)
+    .sort((a, b) => a.order_index - b.order_index);
 
   const { user_id, ...planData } = plan;
-  res.json({ ...planData, series: planSeries });
+  res.json({ ...planData, exercises });
 });
 
 server.post("/api/v1/plans", (req, res) => {
@@ -174,7 +186,6 @@ server.post("/api/v1/plans", (req, res) => {
     id: uuid(),
     user_id: "u1",
     name: req.body.name,
-    description: req.body.description || null,
     created_at: new Date().toISOString(),
   };
   db.plans.push(plan);
@@ -189,7 +200,6 @@ server.put("/api/v1/plans/:planId", (req, res) => {
   if (idx === -1) return res.status(404).json({ error: "Plan not found" });
 
   if (req.body.name !== undefined) db.plans[idx].name = req.body.name;
-  if (req.body.description !== undefined) db.plans[idx].description = req.body.description;
   router.db.setState(db);
 
   const { user_id, ...data } = db.plans[idx];
@@ -201,73 +211,25 @@ server.delete("/api/v1/plans/:planId", (req, res) => {
   const plan = db.plans.find((p) => p.id === req.params.planId);
   if (!plan) return res.status(404).json({ error: "Plan not found" });
 
-  const seriesIds = db.series.filter((s) => s.plan_id === plan.id).map((s) => s.id);
-  db.exercises = db.exercises.filter((e) => !seriesIds.includes(e.series_id));
-  db.series = db.series.filter((s) => s.plan_id !== plan.id);
+  db.exercises = db.exercises.filter((e) => e.plan_id !== plan.id);
   db.plans = db.plans.filter((p) => p.id !== plan.id);
-  router.db.setState(db);
-  res.status(204).end();
-});
-
-// ─── Series ─────────────────────────────────────────────────────────────────
-
-server.post("/api/v1/plans/:planId/series", (req, res) => {
-  const db = router.db.getState();
-  if (!db.plans.find((p) => p.id === req.params.planId)) {
-    return res.status(404).json({ error: "Plan not found" });
-  }
-  const s = {
-    id: uuid(),
-    plan_id: req.params.planId,
-    name: req.body.name,
-    order_index: req.body.order_index ?? 0,
-  };
-  db.series.push(s);
-  router.db.setState(db);
-  res.status(201).json(s);
-});
-
-server.put("/api/v1/series/:seriesId", (req, res) => {
-  const db = router.db.getState();
-  const idx = db.series.findIndex((s) => s.id === req.params.seriesId);
-  if (idx === -1) return res.status(404).json({ error: "Series not found" });
-
-  if (req.body.name !== undefined) db.series[idx].name = req.body.name;
-  if (req.body.order_index !== undefined) db.series[idx].order_index = req.body.order_index;
-  router.db.setState(db);
-  res.json(db.series[idx]);
-});
-
-server.delete("/api/v1/series/:seriesId", (req, res) => {
-  const db = router.db.getState();
-  db.exercises = db.exercises.filter((e) => e.series_id !== req.params.seriesId);
-  db.series = db.series.filter((s) => s.id !== req.params.seriesId);
-  router.db.setState(db);
-  res.status(204).end();
-});
-
-server.patch("/api/v1/series/reorder", (req, res) => {
-  const db = router.db.getState();
-  for (const item of req.body) {
-    const s = db.series.find((s) => s.id === item.id);
-    if (s) s.order_index = item.order_index;
-  }
   router.db.setState(db);
   res.status(204).end();
 });
 
 // ─── Exercises ──────────────────────────────────────────────────────────────
 
-server.post("/api/v1/series/:seriesId/exercises", (req, res) => {
+server.post("/api/v1/plans/:planId/exercises", (req, res) => {
   const db = router.db.getState();
-  if (!db.series.find((s) => s.id === req.params.seriesId)) {
-    return res.status(404).json({ error: "Series not found" });
+  if (!db.plans.find((p) => p.id === req.params.planId)) {
+    return res.status(404).json({ error: "Plan not found" });
   }
   const ex = {
     id: uuid(),
-    series_id: req.params.seriesId,
+    plan_id: req.params.planId,
     name: req.body.name,
     muscle_group: req.body.muscle_group,
+    exercise_type: req.body.exercise_type || "strength",
     sets: req.body.sets,
     reps_target: req.body.reps_target,
     rest_seconds: req.body.rest_seconds,
@@ -284,7 +246,7 @@ server.put("/api/v1/exercises/:exerciseId", (req, res) => {
   const idx = db.exercises.findIndex((e) => e.id === req.params.exerciseId);
   if (idx === -1) return res.status(404).json({ error: "Exercise not found" });
 
-  const fields = ["name", "muscle_group", "sets", "reps_target", "rest_seconds", "notes", "order_index"];
+  const fields = ["name", "muscle_group", "exercise_type", "sets", "reps_target", "rest_seconds", "notes", "order_index"];
   for (const f of fields) {
     if (req.body[f] !== undefined) db.exercises[idx][f] = req.body[f];
   }
@@ -313,13 +275,21 @@ server.patch("/api/v1/exercises/reorder", (req, res) => {
 
 server.post("/api/v1/sessions", (req, res) => {
   const db = router.db.getState();
+  // Auto-finish any existing active sessions
+  for (const s of db.sessions) {
+    if (s.finished_at === null) {
+      s.finished_at = new Date().toISOString();
+      s.notes = s.notes || "Cancelado automaticamente";
+    }
+  }
   const session = {
     id: uuid(),
     user_id: "u1",
-    series_id: req.body.series_id || null,
+    plan_id: req.body.plan_id || null,
     started_at: new Date().toISOString(),
     finished_at: null,
     notes: null,
+    ai_feedback: null,
   };
   db.sessions.push(session);
   router.db.setState(db);
@@ -330,7 +300,7 @@ server.post("/api/v1/sessions", (req, res) => {
 server.get("/api/v1/sessions/active", (_req, res) => {
   const db = router.db.getState();
   const active = db.sessions.find((s) => s.finished_at === null);
-  if (!active) return res.status(404).json({ error: "No active session" });
+  if (!active) return res.json(null);
   const { user_id, ...data } = active;
   res.json(data);
 });
@@ -348,6 +318,8 @@ server.post("/api/v1/sessions/:sessionId/logs", (req, res) => {
     set_number: req.body.set_number,
     weight_kg: req.body.weight_kg ?? null,
     reps: req.body.reps ?? null,
+    duration_min: req.body.duration_min ?? null,
+    distance_km: req.body.distance_km ?? null,
     logged_at: new Date().toISOString(),
   };
   db.logs.push(log);
@@ -377,6 +349,8 @@ server.post("/api/v1/sessions/:sessionId/logs/batch", (req, res) => {
       set_number: item.set_number,
       weight_kg: item.weight_kg ?? null,
       reps: item.reps ?? null,
+      duration_min: item.duration_min ?? null,
+      distance_km: item.distance_km ?? null,
       logged_at: item.logged_at || new Date().toISOString(),
     };
     db.logs.push(log);
@@ -391,7 +365,6 @@ server.patch("/api/v1/sessions/:sessionId/finish", (req, res) => {
   const idx = db.sessions.findIndex((s) => s.id === req.params.sessionId);
   if (idx === -1) return res.status(404).json({ error: "Session not found" });
 
-  // Accept batch logs inline with finish
   if (req.body.logs && Array.isArray(req.body.logs)) {
     for (const item of req.body.logs) {
       db.logs.push({
@@ -402,6 +375,8 @@ server.patch("/api/v1/sessions/:sessionId/finish", (req, res) => {
         set_number: item.set_number,
         weight_kg: item.weight_kg ?? null,
         reps: item.reps ?? null,
+        duration_min: item.duration_min ?? null,
+        distance_km: item.distance_km ?? null,
         logged_at: item.logged_at || new Date().toISOString(),
       });
     }
@@ -409,6 +384,7 @@ server.patch("/api/v1/sessions/:sessionId/finish", (req, res) => {
 
   db.sessions[idx].finished_at = new Date().toISOString();
   if (req.body.notes !== undefined) db.sessions[idx].notes = req.body.notes;
+  db.sessions[idx].ai_feedback = "Bom treino! Continue mantendo a regularidade e progressao de carga.";
   router.db.setState(db);
 
   const { user_id, ...data } = db.sessions[idx];
@@ -431,11 +407,11 @@ server.get("/api/v1/history", (req, res) => {
   const paged = finished.slice(start, start + limit);
 
   const data = paged.map((session) => {
-    const seriesObj = db.series.find((s) => s.id === session.series_id);
+    const plan = db.plans.find((p) => p.id === session.plan_id);
     const { user_id, ...s } = session;
     return {
       ...s,
-      series_name: seriesObj ? seriesObj.name : null,
+      plan_name: plan ? plan.name : null,
       logs: db.logs.filter((l) => l.session_id === session.id),
     };
   });
@@ -448,11 +424,11 @@ server.get("/api/v1/history/:sessionId", (req, res) => {
   const session = db.sessions.find((s) => s.id === req.params.sessionId);
   if (!session) return res.status(404).json({ error: "Session not found" });
 
-  const seriesObj = db.series.find((s) => s.id === session.series_id);
+  const plan = db.plans.find((p) => p.id === session.plan_id);
   const { user_id, ...s } = session;
   res.json({
     ...s,
-    series_name: seriesObj ? seriesObj.name : null,
+    plan_name: plan ? plan.name : null,
     logs: db.logs.filter((l) => l.session_id === session.id),
   });
 });
@@ -492,6 +468,10 @@ server.get("/api/v1/evolution", (req, res) => {
       let value;
       if (group_by === "frequency") {
         value = logs.length;
+      } else if (group_by === "duration") {
+        value = logs.reduce((sum, l) => sum + (l.duration_min || 0), 0);
+      } else if (group_by === "distance") {
+        value = logs.reduce((sum, l) => sum + (l.distance_km || 0), 0);
       } else {
         value = logs.reduce((sum, l) => sum + (l.weight_kg || 0) * (l.reps || 0), 0);
       }
@@ -500,56 +480,6 @@ server.get("/api/v1/evolution", (req, res) => {
     .sort((a, b) => a.date.localeCompare(b.date));
 
   res.json({ data_points, group_by });
-});
-
-// ─── Cardio ─────────────────────────────────────────────────────────────────
-
-server.get("/api/v1/cardio", (req, res) => {
-  const db = router.db.getState();
-  let logs = db.cardio;
-  if (req.query.from) logs = logs.filter((l) => l.logged_at >= req.query.from);
-  if (req.query.to) logs = logs.filter((l) => l.logged_at <= req.query.to);
-  const result = logs.map(({ user_id, ...l }) => l);
-  res.json(result);
-});
-
-server.post("/api/v1/cardio", (req, res) => {
-  const db = router.db.getState();
-  const log = {
-    id: uuid(),
-    user_id: "u1",
-    activity: req.body.activity,
-    duration_min: req.body.duration_min,
-    distance_km: req.body.distance_km ?? null,
-    pace_min_km: req.body.pace_min_km ?? null,
-    logged_at: new Date().toISOString(),
-    notes: req.body.notes || null,
-  };
-  db.cardio.push(log);
-  router.db.setState(db);
-  const { user_id, ...data } = log;
-  res.status(201).json(data);
-});
-
-server.put("/api/v1/cardio/:logId", (req, res) => {
-  const db = router.db.getState();
-  const idx = db.cardio.findIndex((c) => c.id === req.params.logId);
-  if (idx === -1) return res.status(404).json({ error: "Cardio log not found" });
-
-  const fields = ["activity", "duration_min", "distance_km", "pace_min_km", "notes"];
-  for (const f of fields) {
-    if (req.body[f] !== undefined) db.cardio[idx][f] = req.body[f];
-  }
-  router.db.setState(db);
-  const { user_id, ...data } = db.cardio[idx];
-  res.json(data);
-});
-
-server.delete("/api/v1/cardio/:logId", (req, res) => {
-  const db = router.db.getState();
-  db.cardio = db.cardio.filter((c) => c.id !== req.params.logId);
-  router.db.setState(db);
-  res.status(204).end();
 });
 
 // ─── Start server ───────────────────────────────────────────────────────────
