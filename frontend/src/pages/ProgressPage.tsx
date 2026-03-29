@@ -168,15 +168,15 @@ export function ProgressPage() {
                 <AreaChart data={dataPoints}>
                   <defs>
                     <linearGradient id="fillPrimaryEvo" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#a5b4fc" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#a5b4fc" stopOpacity={0} />
+                      <stop offset="0%" stopColor="var(--chart-stroke)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="var(--chart-stroke)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
                   <XAxis dataKey="date" tick={{ fill: "var(--color-text-muted)", fontSize: 11 }} stroke="var(--color-border)" tickFormatter={(d: string) => { if (d.length === 7) return d; const [, m, day] = d.split("-"); return `${day}/${m}`; }} />
                   <YAxis tick={{ fill: "var(--color-text-muted)", fontSize: 11 }} stroke="var(--color-border)" width={45} />
                   <Tooltip contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", fontSize: "var(--text-sm)" }} />
-                  <Area type="monotone" dataKey="value" stroke="#a5b4fc" strokeWidth={2} fill="url(#fillPrimaryEvo)" dot={{ fill: "#a5b4fc", r: 3 }} activeDot={{ r: 5 }} />
+                  <Area type="monotone" dataKey="value" stroke="var(--chart-stroke)" strokeWidth={2} fill="url(#fillPrimaryEvo)" dot={{ fill: "var(--chart-stroke)", r: 3 }} activeDot={{ r: 5 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

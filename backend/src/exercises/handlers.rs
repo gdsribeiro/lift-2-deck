@@ -6,7 +6,7 @@ use crate::auth::middleware::AuthenticatedUser;
 use crate::db::DbPool;
 use crate::errors::AppError;
 use crate::plans::repository as plan_repo;
-use crate::schema::{exercises as exercises_table, series as series_table};
+use crate::schema::exercises as exercises_table;
 
 use super::dto::{CreateExerciseRequest, ReorderItem, UpdateExerciseRequest};
 use super::models::{NewExercise, UpdateExercise};
@@ -19,29 +19,17 @@ fn get_user(req: &HttpRequest) -> Result<AuthenticatedUser, AppError> {
         .ok_or(AppError::Unauthorized)
 }
 
-fn verify_series_ownership(
-    conn: &mut diesel::PgConnection,
-    series_id: Uuid,
-    user_id: Uuid,
-) -> Result<(), AppError> {
-    let plan_id: Uuid = series_table::table
-        .filter(series_table::id.eq(series_id))
-        .select(series_table::plan_id)
-        .first(conn)?;
-    plan_repo::find_by_id(conn, plan_id, user_id)?;
-    Ok(())
-}
-
 fn verify_exercise_ownership(
     conn: &mut diesel::PgConnection,
     exercise_id: Uuid,
     user_id: Uuid,
 ) -> Result<(), AppError> {
-    let series_id: Uuid = exercises_table::table
+    let plan_id: Uuid = exercises_table::table
         .filter(exercises_table::id.eq(exercise_id))
-        .select(exercises_table::series_id)
+        .select(exercises_table::plan_id)
         .first(conn)?;
-    verify_series_ownership(conn, series_id, user_id)
+    plan_repo::find_by_id(conn, plan_id, user_id)?;
+    Ok(())
 }
 
 pub async fn create(
@@ -51,15 +39,17 @@ pub async fn create(
     body: web::Json<CreateExerciseRequest>,
 ) -> Result<HttpResponse, AppError> {
     let user = get_user(&req)?;
-    let series_id = path.into_inner();
+    let plan_id = path.into_inner();
     let mut conn = pool.get().map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
-    verify_series_ownership(&mut conn, series_id, user.user_id)?;
+    plan_repo::find_by_id(&mut conn, plan_id, user.user_id)?;
+    body.validate()?;
 
     let new_exercise = NewExercise {
-        series_id,
+        plan_id,
         name: body.name.clone(),
         muscle_group: body.muscle_group.clone(),
+        exercise_type: body.exercise_type.clone().unwrap_or_else(|| "strength".to_string()),
         sets: body.sets,
         reps_target: body.reps_target.clone(),
         rest_seconds: body.rest_seconds,
@@ -86,6 +76,7 @@ pub async fn update(
     let changeset = UpdateExercise {
         name: body.name.clone(),
         muscle_group: body.muscle_group.clone(),
+        exercise_type: body.exercise_type.clone(),
         sets: body.sets,
         reps_target: body.reps_target.clone(),
         rest_seconds: body.rest_seconds,
@@ -126,5 +117,5 @@ pub async fn reorder(
 
     let items: Vec<(Uuid, i32)> = body.iter().map(|i| (i.id, i.order_index)).collect();
     repository::reorder(&mut conn, &items)?;
-    Ok(HttpResponse::Ok().finish())
+    Ok(HttpResponse::NoContent().finish())
 }

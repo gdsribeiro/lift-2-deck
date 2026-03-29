@@ -9,6 +9,7 @@ use crate::schema::training_plans;
 #[diesel(table_name = training_plans)]
 pub struct TrainingPlan {
     pub id: Uuid,
+    #[serde(skip_serializing)]
     pub user_id: Uuid,
     pub name: String,
     pub description: Option<String>,

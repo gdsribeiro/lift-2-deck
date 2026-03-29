@@ -37,46 +37,20 @@ pub async fn get_detail(
 
     let plan = repository::find_by_id(&mut conn, plan_id, user.user_id)?;
 
-    use crate::schema::{series, exercises};
-    use crate::series::models::Series;
+    use crate::schema::exercises;
     use crate::exercises::models::Exercise;
     use diesel::prelude::*;
 
-    let series_list = series::table
-        .filter(series::plan_id.eq(plan_id))
-        .order(series::order_index.asc())
-        .load::<Series>(&mut conn)?;
-
-    let series_ids: Vec<Uuid> = series_list.iter().map(|s| s.id).collect();
-
     let exercises_list = exercises::table
-        .filter(exercises::series_id.eq_any(&series_ids))
+        .filter(exercises::plan_id.eq(plan_id))
         .order(exercises::order_index.asc())
         .load::<Exercise>(&mut conn)?;
-
-    let series_with_exercises: Vec<serde_json::Value> = series_list
-        .iter()
-        .map(|s| {
-            let exs: Vec<&Exercise> = exercises_list
-                .iter()
-                .filter(|e| e.series_id == s.id)
-                .collect();
-            serde_json::json!({
-                "id": s.id,
-                "plan_id": s.plan_id,
-                "name": s.name,
-                "order_index": s.order_index,
-                "exercises": exs,
-            })
-        })
-        .collect();
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "id": plan.id,
         "name": plan.name,
-        "description": plan.description,
         "created_at": plan.created_at,
-        "series": series_with_exercises,
+        "exercises": exercises_list,
     })))
 }
 

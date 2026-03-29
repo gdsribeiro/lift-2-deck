@@ -49,7 +49,7 @@ pub async fn start(
 
     let new_session = NewWorkoutSession {
         user_id: user.user_id,
-        series_id: body.series_id,
+        plan_id: body.plan_id,
     };
 
     let session = repository::start(&mut conn, new_session)?;
@@ -65,7 +65,7 @@ pub async fn get_active(
 
     match repository::find_active(&mut conn, user.user_id)? {
         Some(session) => Ok(HttpResponse::Ok().json(session)),
-        None => Err(AppError::NotFound("No active session".to_string())),
+        None => Ok(HttpResponse::Ok().json(serde_json::Value::Null)),
     }
 }
 
@@ -89,6 +89,8 @@ pub async fn log_set(
         body.set_number,
         body.weight_kg,
         body.reps,
+        body.duration_min,
+        body.distance_km,
     )?;
 
     let response: SessionLogResponse = log.into();
@@ -106,7 +108,7 @@ pub async fn delete_log(
 
     verify_session_ownership(&mut conn, session_id, user.user_id)?;
 
-    repository::delete_log(&mut conn, log_id)?;
+    repository::delete_log(&mut conn, log_id, session_id)?;
     Ok(HttpResponse::NoContent().finish())
 }
 
@@ -120,6 +122,25 @@ pub async fn finish(
     let user = get_user(&req)?;
     let session_id = path.into_inner();
     let mut conn = pool.get().map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+    verify_session_ownership(&mut conn, session_id, user.user_id)?;
+
+    // Insert batch logs sent with the finish request (hybrid model)
+    if let Some(ref logs) = body.logs {
+        for log_req in logs {
+            repository::log_set(
+                &mut conn,
+                session_id,
+                log_req.exercise_id,
+                log_req.exercise_name.clone(),
+                log_req.set_number,
+                log_req.weight_kg,
+                log_req.reps,
+                log_req.duration_min,
+                log_req.distance_km,
+            )?;
+        }
+    }
 
     repository::finish(&mut conn, session_id, user.user_id, body.notes.clone())?;
 
@@ -164,7 +185,7 @@ pub async fn finish(
             .join("\n\n")
     };
 
-    // Generate AI feedback (non-blocking for the response if it fails)
+    // Generate AI feedback
     let feedback = match groq.generate_workout_feedback(&session_summary, &recent_history).await {
         Ok(text) => Some(text),
         Err(e) => {
@@ -173,7 +194,6 @@ pub async fn finish(
         }
     };
 
-    // Save feedback to DB
     if let Some(ref text) = feedback {
         if let Err(e) = diesel::update(
             workout_sessions::table.filter(workout_sessions::id.eq(session_id)),
@@ -185,7 +205,6 @@ pub async fn finish(
         }
     }
 
-    // Return session with feedback (scoped to user)
     let updated_session = workout_sessions::table
         .filter(workout_sessions::id.eq(session_id))
         .filter(workout_sessions::user_id.eq(user.user_id))
@@ -196,44 +215,32 @@ pub async fn finish(
 
 fn format_session_logs(logs: &[SessionLog]) -> String {
     logs.iter()
-        .map(|l| {
-            let weight = l
-                .weight_kg
-                .as_ref()
-                .and_then(|w| w.to_f64())
-                .map(|w| format!("{w}kg"))
-                .unwrap_or_else(|| "peso corporal".to_string());
-            let reps = l
-                .reps
-                .map(|r| r.to_string())
-                .unwrap_or_else(|| "?".to_string());
-            format!(
-                "{} - Set {}: {} x {} reps",
-                l.exercise_name, l.set_number, weight, reps
-            )
-        })
+        .map(|l| format_single_log(l))
         .collect::<Vec<_>>()
         .join("\n")
 }
 
 fn format_session_log_refs(logs: &[&SessionLog]) -> String {
     logs.iter()
-        .map(|l| {
-            let weight = l
-                .weight_kg
-                .as_ref()
-                .and_then(|w| w.to_f64())
-                .map(|w| format!("{w}kg"))
-                .unwrap_or_else(|| "peso corporal".to_string());
-            let reps = l
-                .reps
-                .map(|r| r.to_string())
-                .unwrap_or_else(|| "?".to_string());
-            format!(
-                "{} - Set {}: {} x {} reps",
-                l.exercise_name, l.set_number, weight, reps
-            )
-        })
+        .map(|l| format_single_log(l))
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+fn format_single_log(l: &SessionLog) -> String {
+    if l.duration_min.is_some() || l.distance_km.is_some() {
+        let dur = l.duration_min.map(|d| format!("{d}min")).unwrap_or_default();
+        let dist = l.distance_km.as_ref()
+            .and_then(|d| d.to_f64())
+            .map(|d| format!("{d}km"))
+            .unwrap_or_default();
+        format!("{} - Set {}: {} {}", l.exercise_name, l.set_number, dur, dist)
+    } else {
+        let weight = l.weight_kg.as_ref()
+            .and_then(|w| w.to_f64())
+            .map(|w| format!("{w}kg"))
+            .unwrap_or_else(|| "peso corporal".to_string());
+        let reps = l.reps.map(|r| r.to_string()).unwrap_or_else(|| "?".to_string());
+        format!("{} - Set {}: {} x {} reps", l.exercise_name, l.set_number, weight, reps)
+    }
 }

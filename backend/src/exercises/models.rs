@@ -8,7 +8,6 @@ use crate::schema::exercises;
 #[diesel(table_name = exercises)]
 pub struct Exercise {
     pub id: Uuid,
-    pub series_id: Uuid,
     pub name: String,
     pub muscle_group: String,
     pub sets: i32,
@@ -16,12 +15,14 @@ pub struct Exercise {
     pub rest_seconds: i32,
     pub notes: Option<String>,
     pub order_index: i32,
+    pub exercise_type: String,
+    pub plan_id: Uuid,
 }
 
 #[derive(Insertable)]
 #[diesel(table_name = exercises)]
 pub struct NewExercise {
-    pub series_id: Uuid,
+    pub plan_id: Uuid,
     pub name: String,
     pub muscle_group: String,
     pub sets: i32,
@@ -29,6 +30,7 @@ pub struct NewExercise {
     pub rest_seconds: i32,
     pub notes: Option<String>,
     pub order_index: i32,
+    pub exercise_type: String,
 }
 
 #[derive(AsChangeset)]
@@ -41,4 +43,5 @@ pub struct UpdateExercise {
     pub rest_seconds: Option<i32>,
     pub notes: Option<Option<String>>,
     pub order_index: Option<i32>,
+    pub exercise_type: Option<String>,
 }

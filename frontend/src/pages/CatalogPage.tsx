@@ -39,9 +39,9 @@ export function CatalogPage() {
       </Link>
       <div className="page-header">
         <h1 className="page-title">Exercicios</h1>
-        <Link to="/catalog/new" className="btn btn--primary">
+        <button className="btn btn--primary" disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
           <FontAwesomeIcon icon={faPlus} /> Novo
-        </Link>
+        </button>
       </div>
 
       {catalog.length === 0 ? (
@@ -67,7 +67,7 @@ export function CatalogPage() {
                       <span>{ex.exercise_type === "cardio" ? "Cardio" : "Forca"}</span>
                     </div>
                   </div>
-                  <button className="btn btn--icon btn--ghost" onClick={() => setDeleteTarget(ex)}>
+                  <button className="btn btn--icon btn--ghost" disabled style={{ opacity: 0.3, cursor: "not-allowed" }}>
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </div>

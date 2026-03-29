@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::auth::middleware::AuthenticatedUser;
 use crate::db::DbPool;
 use crate::errors::AppError;
-use crate::schema::{series, session_logs, workout_sessions};
+use crate::schema::{session_logs, training_plans, workout_sessions};
 use crate::sessions::dto::SessionLogResponse;
 use crate::sessions::models::{SessionLog, WorkoutSession};
 
@@ -27,7 +27,7 @@ struct HistoryResponse {
 struct SessionSummary {
     #[serde(flatten)]
     session: WorkoutSession,
-    series_name: Option<String>,
+    plan_name: Option<String>,
     logs: Vec<SessionLogResponse>,
 }
 
@@ -71,12 +71,12 @@ pub async fn list(
         .order(session_logs::logged_at.asc())
         .load::<SessionLog>(&mut conn)?;
 
-    let series_ids: Vec<Uuid> = sessions.iter().filter_map(|s| s.series_id).collect();
+    let plan_ids: Vec<Uuid> = sessions.iter().filter_map(|s| s.plan_id).collect();
 
-    let series_names: Vec<(Uuid, String)> = if !series_ids.is_empty() {
-        series::table
-            .filter(series::id.eq_any(&series_ids))
-            .select((series::id, series::name))
+    let plan_names: Vec<(Uuid, String)> = if !plan_ids.is_empty() {
+        training_plans::table
+            .filter(training_plans::id.eq_any(&plan_ids))
+            .select((training_plans::id, training_plans::name))
             .load(&mut conn)?
     } else {
         vec![]
@@ -92,14 +92,14 @@ pub async fn list(
                 .map(SessionLogResponse::from)
                 .collect();
 
-            let series_name = session
-                .series_id
-                .and_then(|sid| series_names.iter().find(|(id, _)| *id == sid))
+            let plan_name = session
+                .plan_id
+                .and_then(|pid| plan_names.iter().find(|(id, _)| *id == pid))
                 .map(|(_, name)| name.clone());
 
             SessionSummary {
                 session,
-                series_name,
+                plan_name,
                 logs: session_logs,
             }
         })
@@ -130,23 +130,22 @@ pub async fn detail(
         .map(SessionLogResponse::from)
         .collect();
 
-    let series_name: Option<String> = session.series_id.and_then(|sid| {
-        series::table
-            .filter(series::id.eq(sid))
-            .select(series::name)
+    let plan_name: Option<String> = session.plan_id.and_then(|pid| {
+        training_plans::table
+            .filter(training_plans::id.eq(pid))
+            .select(training_plans::name)
             .first::<String>(&mut conn)
             .ok()
     });
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "id": session.id,
-        "user_id": session.user_id,
-        "series_id": session.series_id,
+        "plan_id": session.plan_id,
         "started_at": session.started_at,
         "finished_at": session.finished_at,
         "notes": session.notes,
         "ai_feedback": session.ai_feedback,
-        "series_name": series_name,
+        "plan_name": plan_name,
         "logs": logs,
     })))
 }

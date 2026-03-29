@@ -52,6 +52,8 @@ pub fn log_set(
     set_number: i32,
     weight_kg: Option<f64>,
     reps: Option<i32>,
+    duration_min: Option<i32>,
+    distance_km: Option<f64>,
 ) -> Result<SessionLog, AppError> {
     let new_log = NewSessionLog {
         session_id,
@@ -60,6 +62,8 @@ pub fn log_set(
         set_number,
         weight_kg: weight_kg.map(|w| BigDecimal::from_str(&w.to_string()).unwrap_or_default()),
         reps,
+        duration_min,
+        distance_km: distance_km.map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
     };
 
     let log = diesel::insert_into(session_logs::table)
@@ -68,9 +72,13 @@ pub fn log_set(
     Ok(log)
 }
 
-pub fn delete_log(conn: &mut PgConnection, log_id: Uuid) -> Result<(), AppError> {
-    let rows =
-        diesel::delete(session_logs::table.filter(session_logs::id.eq(log_id))).execute(conn)?;
+pub fn delete_log(conn: &mut PgConnection, log_id: Uuid, session_id: Uuid) -> Result<(), AppError> {
+    let rows = diesel::delete(
+        session_logs::table
+            .filter(session_logs::id.eq(log_id))
+            .filter(session_logs::session_id.eq(session_id)),
+    )
+    .execute(conn)?;
     if rows == 0 {
         return Err(AppError::NotFound("Log not found".to_string()));
     }

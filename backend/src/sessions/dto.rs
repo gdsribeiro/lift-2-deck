@@ -8,7 +8,7 @@ use super::models::SessionLog;
 
 #[derive(Deserialize)]
 pub struct StartSessionRequest {
-    pub series_id: Option<Uuid>,
+    pub plan_id: Option<Uuid>,
 }
 
 #[derive(Deserialize)]
@@ -18,11 +18,14 @@ pub struct LogSetRequest {
     pub set_number: i32,
     pub weight_kg: Option<f64>,
     pub reps: Option<i32>,
+    pub duration_min: Option<i32>,
+    pub distance_km: Option<f64>,
 }
 
 #[derive(Deserialize)]
 pub struct FinishSessionRequest {
     pub notes: Option<String>,
+    pub logs: Option<Vec<LogSetRequest>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -34,6 +37,8 @@ pub struct SessionLogResponse {
     pub set_number: i32,
     pub weight_kg: Option<f64>,
     pub reps: Option<i32>,
+    pub duration_min: Option<i32>,
+    pub distance_km: Option<f64>,
     pub logged_at: DateTime<Utc>,
 }
 
@@ -47,6 +52,8 @@ impl From<SessionLog> for SessionLogResponse {
             set_number: log.set_number,
             weight_kg: log.weight_kg.as_ref().and_then(BigDecimal::to_f64),
             reps: log.reps,
+            duration_min: log.duration_min,
+            distance_km: log.distance_km.as_ref().and_then(BigDecimal::to_f64),
             logged_at: log.logged_at,
         }
     }
