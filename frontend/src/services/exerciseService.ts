@@ -1,8 +1,8 @@
 import client from "../api/client";
 import type { Exercise, CreateExerciseRequest } from "../types";
 
-export async function createExercise(seriesId: string, data: CreateExerciseRequest): Promise<Exercise> {
-  const response = await client.post<Exercise>(`/series/${seriesId}/exercises`, data);
+export async function createExercise(planId: string, data: CreateExerciseRequest): Promise<Exercise> {
+  const response = await client.post<Exercise>(`/plans/${planId}/exercises`, data);
   return response.data;
 }
 

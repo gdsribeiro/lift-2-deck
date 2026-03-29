@@ -10,8 +10,10 @@ import { PlanDetailPage } from "./pages/PlanDetailPage";
 import { StartWorkoutPage } from "./pages/StartWorkoutPage";
 import { ActiveSessionPage } from "./pages/ActiveSessionPage";
 import { ProgressPage } from "./pages/ProgressPage";
-import { CardioPage } from "./pages/CardioPage";
 import { ConfigPage } from "./pages/ConfigPage";
+import { CatalogPage } from "./pages/CatalogPage";
+import { CreatePlanPage } from "./pages/CreatePlanPage";
+import { CreateExercisePage } from "./pages/CreateExercisePage";
 
 function App() {
   return (
@@ -25,12 +27,14 @@ function App() {
             <Route element={<AppShell />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/plans" element={<PlansPage />} />
+              <Route path="/plans/new" element={<CreatePlanPage />} />
               <Route path="/plans/:planId" element={<PlanDetailPage />} />
               <Route path="/treino" element={<StartWorkoutPage />} />
               <Route path="/session/active" element={<ActiveSessionPage />} />
               <Route path="/progress" element={<ProgressPage />} />
-              <Route path="/cardio" element={<CardioPage />} />
               <Route path="/config" element={<ConfigPage />} />
+              <Route path="/catalog" element={<CatalogPage />} />
+              <Route path="/catalog/new" element={<CreateExercisePage />} />
             </Route>
           </Route>
         </Routes>

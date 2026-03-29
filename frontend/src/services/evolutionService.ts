@@ -1,11 +1,11 @@
 import client from "../api/client";
-import type { EvolutionResponse } from "../types";
+import type { EvolutionGroupBy, EvolutionResponse } from "../types";
 
 export async function getEvolution(params: {
   exercise_id?: string;
   from?: string;
   to?: string;
-  group_by?: "volume" | "frequency";
+  group_by?: EvolutionGroupBy;
   bucket?: "day" | "week" | "month";
 }): Promise<EvolutionResponse> {
   const response = await client.get<EvolutionResponse>("/evolution", { params });

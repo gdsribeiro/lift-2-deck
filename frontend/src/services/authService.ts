@@ -24,3 +24,16 @@ export async function me(): Promise<User> {
 export async function logout(): Promise<void> {
   await client.post("/auth/logout");
 }
+
+export async function updateProfile(data: { email: string }): Promise<User> {
+  const response = await client.put<User>("/auth/profile", data);
+  return response.data;
+}
+
+export async function changePassword(data: { current_password: string; new_password: string }): Promise<void> {
+  await client.put("/auth/password", data);
+}
+
+export async function deleteAccount(): Promise<void> {
+  await client.delete("/auth/account");
+}

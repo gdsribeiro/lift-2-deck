@@ -12,6 +12,7 @@ export async function getCatalog(params?: {
 export async function addExercise(data: {
   name: string;
   category: string;
+  exercise_type: "strength" | "cardio";
 }): Promise<CatalogExercise> {
   const response = await client.post<CatalogExercise>("/catalog", data);
   return response.data;

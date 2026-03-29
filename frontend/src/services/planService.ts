@@ -1,10 +1,5 @@
 import client from "../api/client";
-import type {
-  TrainingPlan,
-  CreateTrainingPlanRequest,
-  UpdateTrainingPlanRequest,
-  PlanDetail,
-} from "../types";
+import type { TrainingPlan, CreateTrainingPlanRequest, UpdateTrainingPlanRequest, PlanDetail } from "../types";
 
 export async function getPlans(): Promise<TrainingPlan[]> {
   const response = await client.get<TrainingPlan[]>("/plans");

@@ -23,39 +23,26 @@ export interface User {
 export interface TrainingPlan {
   id: string;
   name: string;
-  description: string | null;
   created_at: string;
 }
 
 export interface CreateTrainingPlanRequest {
   name: string;
-  description?: string;
 }
 
 export interface UpdateTrainingPlanRequest {
   name?: string;
-  description?: string;
-}
-
-// ===== Series =====
-export interface Series {
-  id: string;
-  plan_id: string;
-  name: string;
-  order_index: number;
-}
-
-export interface CreateSeriesRequest {
-  name: string;
-  order_index: number;
 }
 
 // ===== Exercises =====
+export type ExerciseType = "strength" | "cardio";
+
 export interface Exercise {
   id: string;
-  series_id: string;
+  plan_id: string;
   name: string;
   muscle_group: string;
+  exercise_type: ExerciseType;
   sets: number;
   reps_target: string;
   rest_seconds: number;
@@ -66,6 +53,7 @@ export interface Exercise {
 export interface CreateExerciseRequest {
   name: string;
   muscle_group: string;
+  exercise_type?: ExerciseType;
   sets: number;
   reps_target: string;
   rest_seconds: number;
@@ -76,7 +64,7 @@ export interface CreateExerciseRequest {
 // ===== Workout Sessions =====
 export interface WorkoutSession {
   id: string;
-  series_id: string | null;
+  plan_id: string | null;
   started_at: string;
   finished_at: string | null;
   notes: string | null;
@@ -91,6 +79,8 @@ export interface WorkoutLog {
   set_number: number;
   weight_kg: number | null;
   reps: number | null;
+  duration_min: number | null;
+  distance_km: number | null;
   logged_at: string;
 }
 
@@ -100,40 +90,19 @@ export interface CreateWorkoutLogRequest {
   set_number: number;
   weight_kg?: number;
   reps?: number;
-}
-
-// ===== Cardio =====
-export interface CardioLog {
-  id: string;
-  activity: string;
-  duration_min: number;
-  distance_km: number | null;
-  pace_min_km: number | null;
-  logged_at: string;
-  notes: string | null;
-}
-
-export interface CreateCardioLogRequest {
-  activity: string;
-  duration_min: number;
+  duration_min?: number;
   distance_km?: number;
-  pace_min_km?: number;
-  notes?: string;
 }
 
 // ===== Plan Detail (eager load) =====
 export interface PlanDetail extends TrainingPlan {
-  series: SeriesWithExercises[];
-}
-
-export interface SeriesWithExercises extends Series {
   exercises: Exercise[];
 }
 
 // ===== History =====
 export interface WorkoutSessionDetail extends WorkoutSession {
   logs: WorkoutLog[];
-  series_name: string | null;
+  plan_name: string | null;
 }
 
 export interface PaginatedResponse<T> {
@@ -147,9 +116,12 @@ export interface CatalogExercise {
   id: string;
   name: string;
   category: string;
+  exercise_type: ExerciseType;
 }
 
-// ===== Dashboard =====
+// ===== Score =====
+export type ScoreTier = "retomando" | "aquecendo" | "no-ritmo" | "forte" | "imparavel";
+
 export interface DashboardStats {
   days_this_week: number;
   weekly_volume: number;
@@ -162,7 +134,9 @@ export interface EvolutionDataPoint {
   value: number;
 }
 
+export type EvolutionGroupBy = "volume" | "frequency" | "duration" | "distance";
+
 export interface EvolutionResponse {
   data_points: EvolutionDataPoint[];
-  group_by: "volume" | "frequency";
+  group_by: EvolutionGroupBy;
 }
