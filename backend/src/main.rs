@@ -66,13 +66,21 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(groq_client.clone()))
             // Public auth routes (rate limited: 5 req/min per IP)
             .service(
-                web::scope("/api/v1/auth")
+                web::resource("/api/v1/auth/register")
                     .wrap(Governor::new(&auth_rate_limit))
-                    .route("/register", web::post().to(auth::handlers::register))
-                    .route("/login", web::post().to(auth::handlers::login))
-                    .route("/refresh", web::post().to(auth::handlers::refresh))
-                    .route("/logout", web::post().to(auth::handlers::logout))
+                    .route(web::post().to(auth::handlers::register))
             )
+            .service(
+                web::resource("/api/v1/auth/login")
+                    .wrap(Governor::new(&auth_rate_limit))
+                    .route(web::post().to(auth::handlers::login))
+            )
+            .service(
+                web::resource("/api/v1/auth/refresh")
+                    .wrap(Governor::new(&auth_rate_limit))
+                    .route(web::post().to(auth::handlers::refresh))
+            )
+            .route("/api/v1/auth/logout", web::post().to(auth::handlers::logout))
             // Protected routes
             .service(
                 web::scope("/api/v1")
