@@ -35,7 +35,7 @@ export function HistoryPage() {
 
       {sessions.length === 0 ? (
         <div className="empty">
-          <p className="empty__text">Nenhum treino registrado.</p>
+          <p className="empty__text">Seu historico comeca no proximo treino.</p>
         </div>
       ) : (
         <div className="stagger">
@@ -52,7 +52,7 @@ export function HistoryPage() {
                 >
                   <div className="history-header__info">
                     <div className="history-header__name">
-                      {session.series_name ?? "Treino Livre"}
+                      {session.plan_name ?? "Treino Livre"}
                     </div>
                     <div className="history-header__date">
                       {new Date(session.started_at).toLocaleDateString("pt-BR")}

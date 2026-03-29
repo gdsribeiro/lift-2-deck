@@ -9,9 +9,9 @@ import {
 
 const navItems = [
   { to: "/", icon: faHome, label: "Home" },
-  { to: "/treino", icon: faDumbbell, label: "Treinar" },
+  { to: "/treino", icon: faDumbbell, label: "Treino" },
   { to: "/progress", icon: faChartLine, label: "Progresso" },
-  { to: "/config", icon: faGear, label: "Config" },
+  { to: "/config", icon: faGear, label: "Configurações" },
 ];
 
 export function BottomNav({ hasActiveSession }: { hasActiveSession: boolean }) {
@@ -22,7 +22,7 @@ export function BottomNav({ hasActiveSession }: { hasActiveSession: boolean }) {
           key={item.to}
           to={item.to}
           end={item.to === "/"}
-          className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+          className={({ isActive }) => `nav-link${isActive ? " active" : ""}${item.to === "/treino" ? " nav-link--primary" : ""}`}
         >
           <span style={{ position: "relative" }}>
             <FontAwesomeIcon icon={item.icon} />

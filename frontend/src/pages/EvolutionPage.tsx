@@ -158,9 +158,9 @@ export function EvolutionPage() {
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#a3e635"
+                stroke="#a5b4fc"
                 strokeWidth={2}
-                dot={{ fill: "#a3e635", r: 3 }}
+                dot={{ fill: "#a5b4fc", r: 3 }}
                 activeDot={{ r: 5 }}
               />
             </LineChart>

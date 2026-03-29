@@ -1,14 +1,13 @@
 import { type FormEvent, type TouchEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheck,
-  faStop,
   faDumbbell,
   faRobot,
   faPlus,
   faTimes,
-  faClock,
   faChevronLeft,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
@@ -16,10 +15,12 @@ import * as sessionService from "../services/sessionService";
 import * as planService from "../services/planService";
 import * as catalogService from "../services/catalogService";
 import { useRestTimer } from "../hooks/useRestTimer";
+import { ExerciseIcon, getGroupColor } from "../components/ExerciseIcon";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import type {
   WorkoutSession,
   Exercise,
-  PlanDetail,
+  ExerciseType,
   CreateWorkoutLogRequest,
   CatalogExercise,
 } from "../types";
@@ -30,12 +31,16 @@ interface LocalLog {
   set_number: number;
   weight_kg: number | null;
   reps: number | null;
+  duration_min: number | null;
+  distance_km: number | null;
   logged_at: string;
 }
 
 interface ExerciseState {
   id: string;
   name: string;
+  muscleGroup: string;
+  exerciseType: ExerciseType;
   targetSets: number;
   repsTarget: string;
   restSeconds: number;
@@ -44,30 +49,37 @@ interface ExerciseState {
 }
 
 function exerciseToState(ex: Exercise): ExerciseState {
+  const isCardio = ex.exercise_type === "cardio";
   return {
     id: ex.id,
     name: ex.name,
-    targetSets: ex.sets,
-    repsTarget: ex.reps_target,
-    restSeconds: ex.rest_seconds,
+    muscleGroup: ex.muscle_group,
+    exerciseType: ex.exercise_type ?? "strength",
+    targetSets: isCardio ? 1 : ex.sets,
+    repsTarget: isCardio ? "" : ex.reps_target,
+    restSeconds: isCardio ? 0 : ex.rest_seconds,
     sets: [],
     done: false,
   };
 }
 
 function catalogToState(cat: CatalogExercise): ExerciseState {
+  const isCardio = cat.exercise_type === "cardio";
   return {
     id: cat.id,
     name: cat.name,
-    targetSets: 3,
-    repsTarget: "8-12",
-    restSeconds: 90,
+    muscleGroup: cat.category,
+    exerciseType: cat.exercise_type ?? "strength",
+    targetSets: isCardio ? 1 : 3,
+    repsTarget: isCardio ? "" : "8-12",
+    restSeconds: isCardio ? 0 : 90,
     sets: [],
     done: false,
   };
 }
 
 export function ActiveSessionPage() {
+  usePageTitle("Sessao Ativa");
   const [session, setSession] = useState<WorkoutSession | null>(null);
   const [exerciseStates, setExerciseStates] = useState<ExerciseState[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,8 +88,11 @@ export function ActiveSessionPage() {
   const [isFinishing, setIsFinishing] = useState(false);
   const [isFreeMode, setIsFreeMode] = useState(false);
   const [pendingAdvance, setPendingAdvance] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const navigate = useNavigate();
   const timer = useRestTimer();
+  const timerTotalRef = useRef(0);
 
   const [showPicker, setShowPicker] = useState(false);
   const [catalog, setCatalog] = useState<CatalogExercise[]>([]);
@@ -85,6 +100,8 @@ export function ActiveSessionPage() {
 
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
+  const [duration, setDuration] = useState("");
+  const [distance, setDistance] = useState("");
   const [workoutDate, setWorkoutDate] = useState(() => new Date().toISOString().split("T")[0]);
 
   const exerciseStatesRef = useRef(exerciseStates);
@@ -102,12 +119,9 @@ export function ActiveSessionPage() {
         }
         setSession(activeSession);
 
-        if (activeSession.series_id) {
-          const planDetail = await findPlanBySeries(activeSession.series_id);
-          if (planDetail) {
-            const series = planDetail.series.find((s) => s.id === activeSession.series_id);
-            if (series) setExerciseStates(series.exercises.map(exerciseToState));
-          }
+        if (activeSession.plan_id) {
+          const planDetail = await planService.getPlanDetail(activeSession.plan_id);
+          setExerciseStates(planDetail.exercises.map(exerciseToState));
         } else {
           setIsFreeMode(true);
           const items = await catalogService.getCatalog();
@@ -116,15 +130,6 @@ export function ActiveSessionPage() {
       })
       .finally(() => setIsLoading(false));
   }, []);
-
-  async function findPlanBySeries(seriesId: string): Promise<PlanDetail | null> {
-    const plans = await planService.getPlans();
-    for (const plan of plans) {
-      const detail = await planService.getPlanDetail(plan.id);
-      if (detail.series.some((s) => s.id === seriesId)) return detail;
-    }
-    return null;
-  }
 
   const current = exerciseStates[currentIndex];
   const currentSetNumber = current ? current.sets.length + 1 : 0;
@@ -144,57 +149,78 @@ export function ActiveSessionPage() {
     }
   }, [timer.isRunning, pendingAdvance]);
 
+  // Auto-finish when all exercises are done
+  useEffect(() => {
+    if (totalCount > 0 && doneCount === totalCount && !isFinishing && feedback === null) {
+      handleFinish();
+    }
+  }, [doneCount, totalCount]);
+
   function handleLogSet(e: FormEvent) {
     e.preventDefault();
     if (!current) return;
 
+    const isCardio = current.exerciseType === "cardio";
     const log: LocalLog = {
       exercise_id: current.id,
       exercise_name: current.name,
-      set_number: currentSetNumber,
-      weight_kg: weight ? Number(weight) : null,
-      reps: reps ? Number(reps) : null,
+      set_number: isCardio ? 1 : currentSetNumber,
+      weight_kg: isCardio ? null : (weight ? Number(weight) : null),
+      reps: isCardio ? null : (reps ? Number(reps) : null),
+      duration_min: isCardio && duration ? Number(duration) : null,
+      distance_km: isCardio && distance ? Number(distance) : null,
       logged_at: `${workoutDate}T${new Date().toTimeString().slice(0, 8)}Z`,
     };
 
     const newSetCount = current.sets.length + 1;
     const isLastSet = newSetCount >= current.targetSets;
 
-    setExerciseStates((prev) =>
-      prev.map((es, i) =>
-        i === currentIndex
-          ? { ...es, sets: [...es.sets, log], done: isLastSet ? true : es.done }
-          : es
-      )
-    );
-
-    timer.start(current.restSeconds);
-
-    // If last set, queue advance for after rest ends (don't advance now)
-    if (isLastSet) {
-      setPendingAdvance(true);
+    if (isCardio) {
+      // Cardio: update state and advance in the same callback to avoid stale closure
+      setExerciseStates((prev) => {
+        const updated = prev.map((es, i) =>
+          i === currentIndex
+            ? { ...es, sets: [...es.sets, log], done: true }
+            : es
+        );
+        const nextUndone = updated.findIndex((es, i) => i > currentIndex && !es.done);
+        if (nextUndone !== -1) setCurrentIndex(nextUndone);
+        return updated;
+      });
+    } else {
+      setExerciseStates((prev) =>
+        prev.map((es, i) =>
+          i === currentIndex
+            ? { ...es, sets: [...es.sets, log], done: isLastSet ? true : es.done }
+            : es
+        )
+      );
+      timerTotalRef.current = current.restSeconds;
+      timer.start(current.restSeconds);
+      if (isLastSet) {
+        setPendingAdvance(true);
+      }
     }
   }
 
-  // Auto-fill weight/reps from last set
+  // Auto-fill weight/reps from last set (strength only)
   useEffect(() => {
     if (!current || current.sets.length === 0) {
       setWeight("");
       setReps("");
+      setDuration("");
+      setDistance("");
+      return;
+    }
+    if (current.exerciseType === "cardio") {
+      setDuration("");
+      setDistance("");
       return;
     }
     const lastSet = current.sets[current.sets.length - 1];
     setWeight(lastSet.weight_kg !== null ? String(lastSet.weight_kg) : "");
     setReps(lastSet.reps !== null ? String(lastSet.reps) : "");
   }, [currentIndex, current?.sets.length]);
-
-  function handleAddExtraSet() {
-    if (!current) return;
-    setPendingAdvance(false);
-    setExerciseStates((prev) =>
-      prev.map((es, i) => (i === currentIndex ? { ...es, done: false } : es))
-    );
-  }
 
   function handleSaveExercise() {
     if (!current) return;
@@ -238,12 +264,20 @@ export function ActiveSessionPage() {
   const handleTouchEnd = useCallback((e: TouchEvent) => {
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-    // Only trigger if horizontal swipe is dominant and > 60px
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      if (dx < 0) goNext();   // swipe left = next
-      else goPrev();          // swipe right = prev
+      if (timer.isRunning) return;
+      const states = exerciseStatesRef.current;
+      const idx = currentIndexRef.current;
+      if (dx < 0) {
+        const next = states.findIndex((es, i) => i > idx && !es.done);
+        if (next !== -1) setCurrentIndex(next);
+      } else {
+        for (let i = idx - 1; i >= 0; i--) {
+          if (!states[i].done) { setCurrentIndex(i); break; }
+        }
+      }
     }
-  }, [currentIndex, exerciseStates, timer.isRunning]);
+  }, [timer.isRunning]);
 
   function addFromCatalog(cat: CatalogExercise) {
     const state = catalogToState(cat);
@@ -264,6 +298,8 @@ export function ActiveSessionPage() {
         set_number: s.set_number,
         weight_kg: s.weight_kg ?? undefined,
         reps: s.reps ?? undefined,
+        duration_min: s.duration_min ?? undefined,
+        distance_km: s.distance_km ?? undefined,
       }))
     );
 
@@ -293,7 +329,7 @@ export function ActiveSessionPage() {
           <div className="empty__icon"><FontAwesomeIcon icon={faDumbbell} /></div>
           <p className="empty__text">Nenhuma sessao ativa</p>
           <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", marginTop: "var(--space-sm)" }}>
-            Inicie um treino a partir da aba Treinar.
+            Inicie um treino na aba Treino.
           </p>
         </div>
       </div>
@@ -301,22 +337,110 @@ export function ActiveSessionPage() {
   }
 
   if (feedback !== null) {
+    const completedExercises = exerciseStates.filter((es) => es.sets.length > 0).length;
+    const totalSets = exerciseStates.reduce((sum, es) => sum + es.sets.length, 0);
+    const totalVolume = exerciseStates.reduce(
+      (sum, es) => sum + es.sets.reduce((s, set) => s + (set.weight_kg ?? 0) * (set.reps ?? 0), 0),
+      0
+    );
+
+    // Item 6: Find top lifts (potential PRs) — exercises with highest weight
+    const topLifts = exerciseStates
+      .filter((es) => es.exerciseType === "strength" && es.sets.length > 0)
+      .map((es) => ({
+        name: es.name,
+        maxWeight: Math.max(...es.sets.map((s) => s.weight_kg ?? 0)),
+      }))
+      .filter((t) => t.maxWeight > 0)
+      .sort((a, b) => b.maxWeight - a.maxWeight)
+      .slice(0, 3);
+
+    // Item 21: Milestones
+    const milestones: string[] = [];
+    if (totalSets >= 20) milestones.push("20+ séries numa sessão!");
+    if (totalVolume >= 5000) milestones.push("5 toneladas de volume!");
+
+    // Item 24: Share
+    function handleShare() {
+      const text = `Treino concluído! ${completedExercises} exercícios, ${totalSets} séries${totalVolume > 0 ? `, ${totalVolume >= 1000 ? (totalVolume / 1000).toFixed(1) + "t" : totalVolume + "kg"} de volume` : ""}.`;
+      if (navigator.share) {
+        navigator.share({ title: "Meu Treino", text });
+      } else {
+        navigator.clipboard.writeText(text);
+        alert("Copiado para a área de transferência!");
+      }
+    }
+
     return (
-      <div>
-        <div className="page-header">
-          <h1 className="page-title">Treino Finalizado!</h1>
+      <div className="workout-complete">
+        <div className="workout-complete__check">
+          <svg viewBox="0 0 32 32"><path d="M8 16 L14 22 L24 10" /></svg>
         </div>
-        <div className="card feedback-card" style={{ marginBottom: "var(--space-xl)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
-            <FontAwesomeIcon icon={faRobot} className="feedback-card__icon" />
-            <strong>Feedback do Treino</strong>
+        <div className="workout-complete__title">Treino Finalizado!</div>
+        <div className="workout-complete__stats">
+          <div className="workout-complete__stat">
+            <div className="workout-complete__stat-value">{completedExercises}</div>
+            <div className="workout-complete__stat-label">exercícios</div>
           </div>
-          <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, color: "var(--color-text-muted)" }}>
-            {feedback || "Nao foi possivel gerar feedback para esta sessao."}
-          </p>
+          <div className="workout-complete__stat">
+            <div className="workout-complete__stat-value">{totalSets}</div>
+            <div className="workout-complete__stat-label">séries</div>
+          </div>
+          {totalVolume > 0 && (
+            <div className="workout-complete__stat">
+              <div className="workout-complete__stat-value">
+                {totalVolume >= 1000 ? `${(totalVolume / 1000).toFixed(1)}t` : `${totalVolume}kg`}
+              </div>
+              <div className="workout-complete__stat-label">volume</div>
+            </div>
+          )}
         </div>
-        <button className="btn btn--primary btn--full" onClick={() => navigate("/history")}>
-          Ver Historico
+
+        {/* Item 6: Top lifts / potential PRs */}
+        {topLifts.length > 0 && (
+          <div className="card" style={{ marginBottom: "var(--space-md)", textAlign: "left" }}>
+            <div style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", marginBottom: "var(--space-sm)", color: "var(--color-primary-bright)" }}>
+              Destaques
+            </div>
+            {topLifts.map((t) => (
+              <div key={t.name} style={{ display: "flex", justifyContent: "space-between", padding: "var(--space-xs) 0", fontSize: "var(--text-sm)" }}>
+                <span>{t.name}</span>
+                <span style={{ fontFamily: "var(--font-display)", fontWeight: "var(--weight-bold)" }}>{t.maxWeight}kg</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Item 21: Milestones */}
+        {milestones.length > 0 && (
+          <div style={{ marginBottom: "var(--space-md)" }}>
+            {milestones.map((m) => (
+              <div key={m} className="done-pill" style={{ display: "inline-flex", margin: "var(--space-xs)" }}>
+                <span className="done-pill__check">🏆</span>
+                {m}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {feedback && (
+          <div className="card feedback-card" style={{ marginBottom: "var(--space-md)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
+              <FontAwesomeIcon icon={faRobot} className="feedback-card__icon" />
+              <strong>Feedback do Treino</strong>
+            </div>
+            <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, color: "var(--color-text-muted)" }}>
+              {feedback}
+            </p>
+          </div>
+        )}
+
+        {/* Item 24: Share as primary CTA */}
+        <button className="btn btn--primary btn--full" onClick={handleShare} style={{ marginBottom: "var(--space-md)" }}>
+          Compartilhar Treino
+        </button>
+        <button className="btn btn--ghost btn--full" onClick={() => navigate("/")}>
+          Voltar
         </button>
       </div>
     );
@@ -335,15 +459,36 @@ export function ActiveSessionPage() {
 
   return (
     <div>
-      {/* Sticky timer */}
-      {timer.isRunning && (
-        <div className="sticky-timer">
-          <FontAwesomeIcon icon={faClock} className="rest-inline__icon" />
-          <span className="sticky-timer__label">Descanso</span>
-          <span className="sticky-timer__time">{timer.secondsLeft}s</span>
-          <button className="sticky-timer__skip" onClick={timer.skip}>Pular</button>
-        </div>
-      )}
+      {/* Rest timer dialog */}
+      {timer.isRunning && (() => {
+        const radius = 54;
+        const circumference = 2 * Math.PI * radius;
+        const progress = timerTotalRef.current > 0 ? timer.secondsLeft / timerTotalRef.current : 0;
+        const dashOffset = circumference * (1 - progress);
+        return (
+          <div className="rest-dialog-overlay" aria-live="polite">
+            <div className="rest-dialog">
+              <div className="rest-dialog__title">Descanso</div>
+              <div className="rest-ring">
+                <svg viewBox="0 0 120 120">
+                  <circle className="rest-ring__track" cx="60" cy="60" r={radius} />
+                  <circle
+                    className="rest-ring__fill"
+                    cx="60" cy="60" r={radius}
+                    strokeDasharray={circumference}
+                    strokeDashoffset={dashOffset}
+                  />
+                </svg>
+                <div className="rest-ring__time">{timer.secondsLeft}s</div>
+              </div>
+              <div className="rest-dialog__hint">Proximo exercicio sendo preparado...</div>
+              <button className="rest-dialog__btn" onClick={timer.skip}>
+                Pular Descanso
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Header */}
       <div className="workout-header">
@@ -354,24 +499,46 @@ export function ActiveSessionPage() {
               <span>{doneCount}</span>/{totalCount}
             </span>
           )}
-          <button className="btn btn--ghost" onClick={handleCancel} title="Cancelar">
+          <button className="btn btn--ghost" onClick={() => setShowCancelConfirm(true)} title="Cancelar">
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showCancelConfirm}
+        title="Cancelar treino?"
+        description="Os dados desta sessão serão perdidos."
+        confirmLabel="Sim, cancelar"
+        cancelLabel="Voltar"
+        variant="danger"
+        onConfirm={handleCancel}
+        onCancel={() => setShowCancelConfirm(false)}
+      />
 
       {/* Date selector */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-lg)" }}>
         <span style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)" }}>
           {new Date(workoutDate + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </span>
-        <input
-          type="date"
-          className="form-input"
-          value={workoutDate}
-          onChange={(e) => setWorkoutDate(e.target.value)}
-          style={{ width: "auto", padding: "var(--space-xs) var(--space-sm)", fontSize: "var(--text-xs)", minHeight: "auto" }}
-        />
+        {!showDatePicker ? (
+          <button
+            className="btn btn--ghost"
+            onClick={() => setShowDatePicker(true)}
+            style={{ fontSize: "var(--text-xs)", padding: "var(--space-xs) var(--space-sm)", minHeight: "auto" }}
+          >
+            Alterar
+          </button>
+        ) : (
+          <input
+            type="date"
+            className="form-input"
+            value={workoutDate}
+            onChange={(e) => { setWorkoutDate(e.target.value); setShowDatePicker(false); }}
+            style={{ width: "auto", padding: "var(--space-xs) var(--space-sm)", fontSize: "var(--text-xs)", minHeight: "auto" }}
+            autoFocus
+          />
+        )}
       </div>
 
       {/* Done pills */}
@@ -379,9 +546,13 @@ export function ActiveSessionPage() {
         <div className="done-pills">
           {doneExercises.map((es, i) => (
             <span key={`done-${i}`} className="done-pill">
-              <span className="done-pill__check">✓</span>
+              <span className="done-pill__check">&#10003;</span>
               {es.name}
-              <span>{es.sets.length}x · {es.sets[0]?.weight_kg ?? 0}kg</span>
+              <span>
+                {es.exerciseType === "cardio"
+                  ? `${es.sets[0]?.duration_min ?? 0}min${es.sets[0]?.distance_km ? ` · ${es.sets[0].distance_km}km` : ""}`
+                  : `${es.sets.length}x · ${es.sets[0]?.weight_kg ?? 0}kg`}
+              </span>
             </span>
           ))}
         </div>
@@ -397,90 +568,120 @@ export function ActiveSessionPage() {
           const isActive = idx === currentIndex;
           const isDone = es.done && !isActive;
           const offset = idx - currentIndex;
+          const isCardio = es.exerciseType === "cardio";
+          const cardColor = getGroupColor(es.muscleGroup);
 
-          let blockClass = "exercise-block";
-          if (isActive) {
-            blockClass += " exercise-block--active";
-          } else if (isDone) {
-            blockClass += " exercise-block--done";
-          } else if (offset === 1) {
-            blockClass += " exercise-block--next-1";
-          } else if (offset === 2) {
-            blockClass += " exercise-block--next-2";
-          } else if (offset >= 3) {
-            blockClass += " exercise-block--next-3";
-          }
+          let cardClass = "game-card";
+          if (isActive) cardClass += " game-card--active";
+          else if (isDone) cardClass += " game-card--done";
+          else if (offset === 1) cardClass += " game-card--next-1";
+          else if (offset === 2) cardClass += " game-card--next-2";
+          else cardClass += " game-card--next-3";
+
+          const stats = isCardio
+            ? [{ label: "TIPO", value: "CARD" }, { label: "DIST", value: "–" }, { label: "DUR", value: "–" }]
+            : [{ label: "SER", value: String(es.targetSets) }, { label: "REPS", value: es.repsTarget }, { label: "DESC", value: `${es.restSeconds}s` }];
 
           return (
-            <div key={`${es.id}-${idx}`} className={blockClass}>
-              <div className="exercise-block__header">
-                <div className={`exercise-block__number${es.done ? " exercise-block__number--done" : ""}`}>
-                  {es.done ? "✓" : idx + 1}
+            <div key={`${es.id}-${idx}`} className={cardClass} style={{ "--card-color": cardColor } as React.CSSProperties}>
+              <div className="game-card__inner">
+                <div className="game-card__topbar">
+                  {es.done
+                    ? <span className="game-card__number" style={{ color: "var(--color-success)" }}>&#10003;</span>
+                    : <span className="game-card__number">#{String(idx + 1).padStart(2, "0")}</span>
+                  }
+                  <span className="game-card__type">
+                    <span className="game-card__type-dot" />
+                    {isCardio ? "CARDIO" : "FORCA"}
+                  </span>
                 </div>
-                <div className="exercise-block__info">
-                  <div className="exercise-block__name">{es.name}</div>
-                  <div className="exercise-block__meta">
-                    {es.targetSets} series · {es.repsTarget} reps · {es.restSeconds}s
+
+                <div className="game-card__art">
+                  <div className="game-card__art-frame">
+                    <ExerciseIcon name={es.name} />
                   </div>
                 </div>
-              </div>
 
-              {isActive && (
-                <div className="exercise-block__body">
-                  {es.sets.map((s) => (
-                    <div key={s.set_number} className="set-row">
-                      <span className="set-row__number">{s.set_number}.</span>
-                      <span className="set-row__detail">{s.weight_kg ?? 0}kg x {s.reps ?? 0}</span>
-                      <span className="set-row__check">✓</span>
+                <div className="game-card__title-area">
+                  <div className="game-card__name">{es.name}</div>
+                </div>
+
+                <div className="game-card__divider" />
+
+                <div className="game-card__stats">
+                  {stats.map((s) => (
+                    <div key={s.label} className="game-card__stat">
+                      <span className="game-card__stat-label">{s.label}</span>
+                      <span className="game-card__stat-value">{s.value}</span>
                     </div>
                   ))}
-
-                  {timer.isRunning && (
-                    <div className="rest-inline">
-                      <FontAwesomeIcon icon={faClock} className="rest-inline__icon" />
-                      <span className="rest-inline__text">Descansando...</span>
-                      <button className="sticky-timer__skip" onClick={timer.skip}>Pular</button>
-                    </div>
-                  )}
-
-                  {!timer.isRunning && !es.done && (
-                    <>
-                      <div style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", margin: "var(--space-md) 0 var(--space-sm)" }}>
-                        Serie {currentSetNumber} de {es.targetSets}
-                      </div>
-                      <form onSubmit={handleLogSet}>
-                        <div className="form-row">
-                          <div className="form-group">
-                            <input className="form-input" type="number" placeholder="kg" value={weight} onChange={(e) => setWeight(e.target.value)} step="0.5" min="0" />
-                          </div>
-                          <div className="form-group">
-                            <input className="form-input" type="number" placeholder="reps" value={reps} onChange={(e) => setReps(e.target.value)} min="0" />
-                          </div>
-                          <button className="btn btn--primary" type="submit">
-                            <FontAwesomeIcon icon={faCheck} />
-                          </button>
-                        </div>
-                      </form>
-                    </>
-                  )}
-
-                  {!timer.isRunning && es.done && (
-                    <div style={{ marginTop: "var(--space-md)" }}>
-                      <button className="btn btn--ghost btn--full" onClick={handleAddExtraSet}>
-                        <FontAwesomeIcon icon={faPlus} /> Serie extra
-                      </button>
-                    </div>
-                  )}
-
-                  {!timer.isRunning && es.sets.length >= es.targetSets && !es.done && (
-                    <div className="form-actions">
-                      <button className="btn btn--primary btn--full" onClick={handleSaveExercise}>
-                        Salvar Exercicio
-                      </button>
-                    </div>
-                  )}
                 </div>
-              )}
+
+                {isActive && (
+                  <div className="game-card__body">
+                    {es.sets.map((s, si) => (
+                      <div key={s.set_number} className={`set-row${si === es.sets.length - 1 ? " set-row--new" : ""}`}>
+                        <span className="set-row__number">{s.set_number}.</span>
+                        <span className="set-row__detail">
+                          {isCardio
+                            ? `${s.duration_min ?? 0}min${s.distance_km ? ` · ${s.distance_km}km` : ""}`
+                            : `${s.weight_kg ?? 0}kg x ${s.reps ?? 0}`}
+                        </span>
+                        <span className="set-row__check">&#10003;</span>
+                      </div>
+                    ))}
+
+                    {!timer.isRunning && !es.done && (
+                      <>
+                        {isCardio ? (
+                          <form onSubmit={handleLogSet} style={{ marginTop: "var(--space-md)" }}>
+                            <div className="form-row">
+                              <div className="form-group">
+                                <label className="form-label">Duracao (min)</label>
+                                <input className="form-input" type="number" placeholder="min" value={duration} onChange={(e) => setDuration(e.target.value)} min="1" required />
+                              </div>
+                              <div className="form-group">
+                                <label className="form-label">Distancia (km)</label>
+                                <input className="form-input" type="number" placeholder="km" value={distance} onChange={(e) => setDistance(e.target.value)} step="0.1" min="0" />
+                              </div>
+                            </div>
+                            <button className="btn btn--primary btn--full" type="submit" style={{ marginTop: "var(--space-md)" }}>
+                              <FontAwesomeIcon icon={faCheck} /> Registrar
+                            </button>
+                          </form>
+                        ) : (
+                          <>
+                            <div className="game-card__set-label">
+                              Serie <strong>{currentSetNumber}</strong> de {es.targetSets}
+                            </div>
+                            <form onSubmit={handleLogSet}>
+                              <div className="form-row">
+                                <div className="form-group">
+                                  <input className="form-input" type="number" placeholder="kg" value={weight} onChange={(e) => setWeight(e.target.value)} step="0.5" min="0" />
+                                </div>
+                                <div className="form-group">
+                                  <input className="form-input" type="number" placeholder="reps" value={reps} onChange={(e) => setReps(e.target.value)} min="0" />
+                                </div>
+                              </div>
+                              <button className="btn btn--primary btn--full" type="submit" style={{ marginTop: "var(--space-md)" }}>
+                                <FontAwesomeIcon icon={faCheck} /> Registrar
+                              </button>
+                            </form>
+                          </>
+                        )}
+                      </>
+                    )}
+
+                    {!timer.isRunning && es.sets.length >= es.targetSets && !es.done && (
+                      <div className="form-actions">
+                        <button className="btn btn--primary btn--full" onClick={handleSaveExercise}>
+                          Salvar Exercicio
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
@@ -493,6 +694,7 @@ export function ActiveSessionPage() {
             className="card-nav__btn"
             onClick={goPrev}
             disabled={!canGoPrev || timer.isRunning}
+            aria-label="Exercício anterior"
           >
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>
@@ -503,6 +705,7 @@ export function ActiveSessionPage() {
             className="card-nav__btn"
             onClick={goNext}
             disabled={!canGoNext || timer.isRunning}
+            aria-label="Próximo exercício"
           >
             <FontAwesomeIcon icon={faChevronRight} />
           </button>
@@ -532,6 +735,22 @@ export function ActiveSessionPage() {
                 />
               </div>
               <div style={{ maxHeight: 280, overflowY: "auto" }}>
+                {/* Item 22: Recent exercises (from past added in this session) */}
+                {!searchQuery && exerciseStates.length > 0 && (
+                  <div style={{ marginBottom: "var(--space-md)" }}>
+                    <div style={{ fontSize: "var(--text-xs)", fontWeight: "var(--weight-semibold)", color: "var(--color-primary-bright)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "var(--space-xs)" }}>
+                      Recentes
+                    </div>
+                    {[...new Set(exerciseStates.map((es) => es.name))].map((name) => {
+                      const cat = catalog.find((c) => c.name === name);
+                      return cat ? (
+                        <button key={`recent-${cat.id}`} className="btn btn--ghost btn--full btn--start" style={{ minHeight: 36 }} onClick={() => addFromCatalog(cat)}>
+                          {cat.name}
+                        </button>
+                      ) : null;
+                    })}
+                  </div>
+                )}
                 {Object.entries(catalogByCategory).map(([category, items]) => (
                   <div key={category} style={{ marginBottom: "var(--space-md)" }}>
                     <div style={{ fontSize: "var(--text-xs)", fontWeight: "var(--weight-semibold)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "var(--space-xs)" }}>
@@ -540,10 +759,11 @@ export function ActiveSessionPage() {
                     {items.map((cat) => (
                       <button
                         key={cat.id}
-                        className="btn btn--ghost btn--full"
-                        style={{ justifyContent: "flex-start", minHeight: 36 }}
+                        className="btn btn--ghost btn--full btn--start"
+                        style={{ minHeight: 36 }}
                         onClick={() => addFromCatalog(cat)}
                       >
+                        <span style={{ color: getGroupColor(cat.category) }}><ExerciseIcon name={cat.name} /></span>
                         {cat.name}
                       </button>
                     ))}
@@ -569,12 +789,12 @@ export function ActiveSessionPage() {
 
       {/* Finish */}
       <button
-        className="btn btn--danger btn--full btn--lg"
+        className="btn btn--primary btn--full btn--lg"
         onClick={handleFinish}
         disabled={isFinishing || exerciseStates.flatMap((es) => es.sets).length === 0}
         style={{ marginTop: "var(--space-xl)" }}
       >
-        <FontAwesomeIcon icon={faStop} /> {isFinishing ? "Finalizando..." : "Finalizar Treino"}
+        <FontAwesomeIcon icon={faCheck} /> {isFinishing ? "Finalizando..." : "Finalizar Treino"}
       </button>
     </div>
   );

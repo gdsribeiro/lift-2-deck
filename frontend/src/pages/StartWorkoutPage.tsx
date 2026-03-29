@@ -1,26 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDumbbell, faListCheck } from "@fortawesome/free-solid-svg-icons";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import * as planService from "../services/planService";
 import * as sessionService from "../services/sessionService";
 import type { PlanDetail } from "../types";
 
 export function StartWorkoutPage() {
+  usePageTitle("Treino");
   const [plans, setPlans] = useState<PlanDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+  const [pendingFree, setPendingFree] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    planService.getPlans().then(async (list) => {
-      const details = await Promise.all(list.map((p) => planService.getPlanDetail(p.id)));
-      setPlans(details);
-      setIsLoading(false);
-    });
+    planService.getPlans()
+      .then((basicPlans) => Promise.all(basicPlans.map((p) => planService.getPlanDetail(p.id))))
+      .then(setPlans)
+      .finally(() => setIsLoading(false));
   }, []);
 
-  async function startFromSeries(seriesId: string) {
-    await sessionService.startSession(seriesId);
+  async function startFromPlan(planId: string) {
+    await sessionService.startSession(planId);
     navigate("/session/active");
   }
 
@@ -28,6 +32,8 @@ export function StartWorkoutPage() {
     await sessionService.startSession();
     navigate("/session/active");
   }
+
+  const pendingPlan = plans.find((p) => p.id === pendingPlanId);
 
   if (isLoading) return <div className="loader">Carregando</div>;
 
@@ -37,49 +43,53 @@ export function StartWorkoutPage() {
         <h1 className="page-title">Treino</h1>
       </div>
 
-      {plans.length > 0 && (
-        <section className="section" style={{ marginTop: 0 }}>
-          <div className="section__header">
-            <h2 className="section__title">Meus Planos</h2>
-          </div>
-          <div className="stagger">
-            {plans.map((plan) => (
-              <div key={plan.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
-                <div style={{ padding: "var(--space-lg)", paddingBottom: "var(--space-sm)" }}>
-                  <div className="card__title">{plan.name}</div>
-                  {plan.description && <div className="card__subtitle">{plan.description}</div>}
-                </div>
-                <div style={{ padding: "0 var(--space-lg) var(--space-lg)", display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
-                  {plan.series.map((s) => (
-                    <button
-                      key={s.id}
-                      className="btn btn--secondary btn--full"
-                      onClick={() => startFromSeries(s.id)}
-                      style={{ justifyContent: "space-between" }}
-                    >
-                      <span>
-                        <FontAwesomeIcon icon={faListCheck} style={{ marginRight: "var(--space-sm)" }} />
-                        {s.name}
-                      </span>
-                      <span className="badge">{s.exercises.length} exercicios</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <div className="divider" />
-
-      <button className="cta-train" onClick={startFree}>
+      <button className="cta-train" onClick={() => setPendingFree(true)}>
         <FontAwesomeIcon icon={faDumbbell} />
         Treino Livre
       </button>
-      <p style={{ textAlign: "center", color: "var(--color-text-muted)", fontSize: "var(--text-sm)", marginTop: "calc(-1 * var(--space-md))" }}>
-        Registrar exercicios avulsos sem seguir um plano.
-      </p>
+
+      {plans.length > 0 && (
+        <>
+          <div className="divider" />
+
+          <section className="section--flush">
+            <div className="section__header">
+              <h2 className="section__title">Meus Planos</h2>
+            </div>
+            <div className="stagger">
+              {plans.map((plan) => (
+                <button
+                  key={plan.id}
+                  className="btn btn--secondary btn--full btn--start"
+                  onClick={() => setPendingPlanId(plan.id)}
+                >
+                  <FontAwesomeIcon icon={faListCheck} />
+                  {plan.name}
+                  <span className="badge" style={{ marginLeft: "auto", fontSize: "var(--text-xs)", opacity: 0.7 }}>{plan.exercises.length} exercícios</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+
+      <ConfirmDialog
+        open={pendingFree}
+        title="Treino Livre"
+        description="Iniciar um treino sem plano definido?"
+        confirmLabel="Iniciar"
+        onConfirm={() => { setPendingFree(false); startFree(); }}
+        onCancel={() => setPendingFree(false)}
+      />
+
+      <ConfirmDialog
+        open={!!pendingPlanId}
+        title={`Iniciar ${pendingPlan?.name ?? "treino"}?`}
+        description={`${pendingPlan?.exercises.length ?? 0} exercícios neste plano.`}
+        confirmLabel="Iniciar"
+        onConfirm={() => { const id = pendingPlanId!; setPendingPlanId(null); startFromPlan(id); }}
+        onCancel={() => setPendingPlanId(null)}
+      />
     </div>
   );
 }
