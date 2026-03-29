@@ -15,7 +15,7 @@ import {
 import * as sessionService from "../services/sessionService";
 import * as dashboardService from "../services/dashboardService";
 import * as evolutionService from "../services/evolutionService";
-import { calculateFitPoints, getTierColor } from "../services/fitnessScoreService";
+import { calculateFitPoints } from "../services/fitnessScoreService";
 import type { WorkoutSession, DashboardStats, EvolutionDataPoint } from "../types";
 
 function oneYearAgo(): string {
@@ -81,25 +81,6 @@ export function DashboardPage() {
         {activeSession ? "Continuar Treino" : "Iniciar Treino"}
       </Link>
 
-      {stats && stats.streak === 0 && chartData.length === 0 && (
-        <div className="card onboarding-card" style={{ marginBottom: "var(--space-xl)", background: "linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-alt) 100%)" }}>
-          <div style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", marginBottom: "var(--space-sm)" }}>
-            Bem-vindo ao Pulso!
-          </div>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", lineHeight: 1.6, marginBottom: "var(--space-lg)" }}>
-            Comece criando seus planos de treino em <strong>Configurações &gt; Meus Planos</strong>, ou inicie um <strong>Treino Livre</strong> agora mesmo.
-          </p>
-          <div style={{ display: "flex", gap: "var(--space-md)" }}>
-            <Link to="/plans" className="btn btn--secondary" style={{ flex: 1 }}>
-              Criar Plano
-            </Link>
-            <Link to="/treino" className="btn btn--primary" style={{ flex: 1 }}>
-              Treino Livre
-            </Link>
-          </div>
-        </div>
-      )}
-
       {stats && (
         <div className="stats-row">
           <div className="stat-card">
@@ -133,12 +114,12 @@ export function DashboardPage() {
             <span style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)" }}>{stats.days_this_week} de 4 treinos</span>
           </div>
           <div style={{ height: 8, borderRadius: 4, background: "var(--color-surface-alt)", overflow: "hidden" }}>
-            <div style={{ height: "100%", borderRadius: 4, background: "var(--color-primary-bright, #a3e635)", width: `${Math.min((stats.days_this_week / 4) * 100, 100)}%`, transition: "width 0.3s ease" }} />
+            <div style={{ height: "100%", borderRadius: 4, background: "var(--color-primary-bright, #a5b4fc)", width: `${Math.min((stats.days_this_week / 4) * 100, 100)}%`, transition: "width 0.3s ease" }} />
           </div>
         </div>
       )}
 
-      {chartData.length > 0 && (
+      {chartData.length > 0 ? (
         <section className="section">
           <div className="section__header">
             <h2 className="section__title">Evolução</h2>
@@ -148,8 +129,8 @@ export function DashboardPage() {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="fillPrimary" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#a5b4fc" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#a5b4fc" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--chart-stroke)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--chart-stroke)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
@@ -174,21 +155,38 @@ export function DashboardPage() {
                     borderRadius: "var(--radius-md)",
                     fontSize: "var(--text-sm)",
                   }}
-                  formatter={(value: number) => [`${value.toLocaleString()} kg·rep`, "Volume"]}
+                  formatter={(value) => [`${Number(value).toLocaleString()} kg·rep`, "Volume"]}
                 />
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#a5b4fc"
+                  stroke="var(--chart-stroke)"
                   strokeWidth={2}
                   fill="url(#fillPrimary)"
-                  dot={{ fill: "#a5b4fc", r: 3 }}
+                  dot={{ fill: "var(--chart-stroke)", r: 3 }}
                   activeDot={{ r: 5 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </section>
+      ) : (
+        <div className="card onboarding-card" style={{ background: "linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-alt) 100%)" }}>
+          <div style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", marginBottom: "var(--space-sm)" }}>
+            Bem-vindo ao Lift2Deck!
+          </div>
+          <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", lineHeight: 1.6, marginBottom: "var(--space-lg)" }}>
+            Comece criando seus planos de treino em <strong>Configurações &gt; Meus Planos</strong>, ou inicie um <strong>Treino Livre</strong> agora mesmo.
+          </p>
+          <div style={{ display: "flex", gap: "var(--space-md)" }}>
+            <Link to="/plans" className="btn btn--secondary" style={{ flex: 1 }}>
+              Criar Plano
+            </Link>
+            <Link to="/treino" className="btn btn--primary" style={{ flex: 1 }}>
+              Treino Livre
+            </Link>
+          </div>
+        </div>
       )}
     </div>
   );

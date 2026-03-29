@@ -43,7 +43,7 @@ export function StartWorkoutPage() {
         <h1 className="page-title">Treino</h1>
       </div>
 
-      <button className="cta-train" onClick={() => setPendingFree(true)}>
+      <button className="cta-train" onClick={startFree}>
         <FontAwesomeIcon icon={faDumbbell} />
         Treino Livre
       </button>
