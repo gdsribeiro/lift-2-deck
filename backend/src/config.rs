@@ -1,16 +1,9 @@
 use std::env;
 
-#[derive(Clone, PartialEq)]
-pub enum AuthMode {
-    Local,
-    Supabase,
-}
-
 pub struct Config {
     pub database_url: String,
-    pub auth_mode: AuthMode,
-    pub supabase_url: Option<String>,
-    pub supabase_service_key: Option<String>,
+    pub supabase_url: String,
+    pub supabase_service_key: String,
     pub jwt_secret: String,
     pub groq_api_key: String,
     pub frontend_origin: String,
@@ -20,25 +13,11 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Self {
-        let auth_mode = match env::var("AUTH_MODE").unwrap_or_else(|_| "supabase".to_string()).as_str() {
-            "local" => AuthMode::Local,
-            _ => AuthMode::Supabase,
-        };
-
-        let supabase_url = env::var("SUPABASE_URL").ok();
-        let supabase_service_key = env::var("SUPABASE_SERVICE_KEY").ok();
-
-        if auth_mode == AuthMode::Supabase {
-            if supabase_url.is_none() || supabase_service_key.is_none() {
-                panic!("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set when AUTH_MODE=supabase");
-            }
-        }
-
         Self {
             database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
-            auth_mode,
-            supabase_url,
-            supabase_service_key,
+            supabase_url: env::var("SUPABASE_URL").expect("SUPABASE_URL must be set"),
+            supabase_service_key: env::var("SUPABASE_SERVICE_KEY")
+                .expect("SUPABASE_SERVICE_KEY must be set"),
             jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET must be set"),
             groq_api_key: env::var("GROQ_API_KEY").unwrap_or_default(),
             frontend_origin: env::var("FRONTEND_ORIGIN")

@@ -1,5 +1,8 @@
+import axios from "axios";
 import client from "../api/client";
 import type { AuthResponse, LoginRequest, RegisterRequest, User } from "../types";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 export async function login(data: LoginRequest): Promise<AuthResponse> {
   const response = await client.post<AuthResponse>("/auth/login", data);
@@ -12,7 +15,11 @@ export async function register(data: RegisterRequest): Promise<AuthResponse> {
 }
 
 export async function refresh(): Promise<AuthResponse> {
-  const response = await client.post<AuthResponse>("/auth/refresh");
+  const response = await axios.post<AuthResponse>(
+    `${API_BASE_URL}/api/v1/auth/refresh`,
+    {},
+    { withCredentials: true }
+  );
   return response.data;
 }
 
@@ -28,10 +35,6 @@ export async function logout(): Promise<void> {
 export async function updateProfile(data: { email: string }): Promise<User> {
   const response = await client.put<User>("/auth/profile", data);
   return response.data;
-}
-
-export async function changePassword(data: { current_password: string; new_password: string }): Promise<void> {
-  await client.put("/auth/password", data);
 }
 
 export async function deleteAccount(): Promise<void> {

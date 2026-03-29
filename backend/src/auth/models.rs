@@ -11,8 +11,6 @@ pub struct User {
     pub id: Uuid,
     pub email: String,
     pub created_at: DateTime<Utc>,
-    #[serde(skip_serializing)]
-    pub password_hash: Option<String>,
 }
 
 #[derive(Insertable)]
@@ -20,5 +18,4 @@ pub struct User {
 pub struct NewUser {
     pub id: Uuid,
     pub email: String,
-    pub password_hash: Option<String>,
 }

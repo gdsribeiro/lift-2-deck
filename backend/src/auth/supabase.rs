@@ -61,12 +61,17 @@ impl SupabaseClient {
             })
             .send()
             .await
-            .map_err(|e| AppError::ExternalServiceError(e.to_string()))?;
+            .map_err(|e| {
+                eprintln!("Supabase signup request failed: {}", e.without_url());
+                AppError::ExternalServiceError("Supabase request failed".to_string())
+            })?;
 
         if !response.status().is_success() {
+            let status = response.status();
             let body = response.text().await.unwrap_or_default();
+            eprintln!("Supabase signup failed ({status}): {body}");
             return Err(AppError::ExternalServiceError(format!(
-                "Supabase signup failed: {body}"
+                "Supabase signup failed with status {status}"
             )));
         }
 
@@ -107,5 +112,28 @@ impl SupabaseClient {
             .map_err(|e| AppError::ExternalServiceError(e.to_string()))?;
 
         Ok(body.user.id)
+    }
+
+    pub async fn delete_user(&self, user_id: Uuid) -> Result<(), AppError> {
+        let response = self
+            .http
+            .delete(format!(
+                "{}/auth/v1/admin/users/{}",
+                self.base_url, user_id
+            ))
+            .header("apikey", &self.service_key)
+            .header("Authorization", format!("Bearer {}", self.service_key))
+            .send()
+            .await
+            .map_err(|e| AppError::ExternalServiceError(e.to_string()))?;
+
+        if !response.status().is_success() {
+            eprintln!("Supabase delete_user failed ({})", response.status());
+            return Err(AppError::ExternalServiceError(
+                "Failed to delete Supabase user".to_string(),
+            ));
+        }
+
+        Ok(())
     }
 }

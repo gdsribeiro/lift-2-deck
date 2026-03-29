@@ -1,6 +1,7 @@
 mod auth;
-mod cardio;
+mod catalog;
 mod config;
+mod dashboard;
 mod db;
 mod errors;
 mod evolution;
@@ -9,16 +10,16 @@ mod groq;
 mod history;
 mod plans;
 mod schema;
-mod series;
 mod sessions;
 
 use actix_cors::Cors;
+use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
 use auth::middleware::jwt_validator;
 use auth::supabase::SupabaseClient;
-use config::{AuthMode, Config};
+use config::Config;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -29,20 +30,20 @@ async fn main() -> std::io::Result<()> {
     let pool = db::create_pool(&config.database_url);
     let groq_client = groq::client::GroqClient::new(config.groq_api_key.clone());
     let jwt_secret = config.jwt_secret.clone();
-    let auth_mode = config.auth_mode.clone();
     let frontend_origin = config.frontend_origin.clone();
     let bind_addr = format!("{}:{}", config.server_host, config.server_port);
 
-    let supabase: Option<SupabaseClient> = match auth_mode {
-        AuthMode::Supabase => Some(SupabaseClient::new(
-            config.supabase_url.clone().unwrap(),
-            config.supabase_service_key.clone().unwrap(),
-        )),
-        AuthMode::Local => {
-            println!("Running in LOCAL auth mode (Supabase bypassed)");
-            None
-        }
-    };
+    let supabase = SupabaseClient::new(
+        config.supabase_url.clone(),
+        config.supabase_service_key.clone(),
+    );
+
+    // Rate limit: 5 requests per minute per IP on auth endpoints
+    let auth_rate_limit = GovernorConfigBuilder::default()
+        .seconds_per_request(12)
+        .burst_size(5)
+        .finish()
+        .expect("Failed to create rate limiter");
 
     println!("Starting server at {bind_addr}");
 
@@ -56,46 +57,45 @@ async fn main() -> std::io::Result<()> {
 
         let auth_middleware = HttpAuthentication::bearer(jwt_validator);
 
-        let mut app = App::new()
+        App::new()
             .wrap(Logger::default())
             .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(jwt_secret.clone()))
-            .app_data(web::Data::new(auth_mode.clone()))
-            .app_data(web::Data::new(groq_client.clone()));
-
-        if let Some(ref client) = supabase {
-            app = app.app_data(web::Data::new(client.clone()));
-        }
-
-        app
-            // Public routes
+            .app_data(web::Data::new(supabase.clone()))
+            .app_data(web::Data::new(groq_client.clone()))
+            // Public auth routes (rate limited: 5 req/min per IP)
             .service(
                 web::scope("/api/v1/auth")
+                    .wrap(Governor::new(&auth_rate_limit))
                     .route("/register", web::post().to(auth::handlers::register))
                     .route("/login", web::post().to(auth::handlers::login))
                     .route("/refresh", web::post().to(auth::handlers::refresh))
-                    .route("/logout", web::post().to(auth::handlers::logout)),
+                    .route("/logout", web::post().to(auth::handlers::logout))
             )
             // Protected routes
             .service(
                 web::scope("/api/v1")
                     .wrap(auth_middleware)
                     .route("/auth/me", web::get().to(auth::handlers::me))
+                    .route("/auth/profile", web::put().to(auth::handlers::update_profile))
+                    .route("/auth/account", web::delete().to(auth::handlers::delete_account))
+                    // Dashboard
+                    .route("/dashboard/stats", web::get().to(dashboard::handlers::get_stats))
+                    .route("/dashboard/score", web::get().to(dashboard::handlers::get_score))
+                    // Catalog
+                    .route("/catalog", web::get().to(catalog::handlers::list))
+                    .route("/catalog", web::post().to(catalog::handlers::create))
+                    .route("/catalog/{id}", web::delete().to(catalog::handlers::delete))
                     // Plans
                     .route("/plans", web::get().to(plans::handlers::list))
                     .route("/plans", web::post().to(plans::handlers::create))
                     .route("/plans/{id}", web::get().to(plans::handlers::get_detail))
                     .route("/plans/{id}", web::put().to(plans::handlers::update))
                     .route("/plans/{id}", web::delete().to(plans::handlers::delete))
-                    // Series (static routes before dynamic)
-                    .route("/series/reorder", web::patch().to(series::handlers::reorder))
-                    .route("/plans/{plan_id}/series", web::post().to(series::handlers::create))
-                    .route("/series/{id}", web::put().to(series::handlers::update))
-                    .route("/series/{id}", web::delete().to(series::handlers::delete))
-                    // Exercises (static routes before dynamic)
+                    // Exercises
                     .route("/exercises/reorder", web::patch().to(exercises::handlers::reorder))
-                    .route("/series/{series_id}/exercises", web::post().to(exercises::handlers::create))
+                    .route("/plans/{plan_id}/exercises", web::post().to(exercises::handlers::create))
                     .route("/exercises/{id}", web::put().to(exercises::handlers::update))
                     .route("/exercises/{id}", web::delete().to(exercises::handlers::delete))
                     // Sessions
@@ -108,11 +108,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/history", web::get().to(history::handlers::list))
                     .route("/history/{session_id}", web::get().to(history::handlers::detail))
                     // Evolution
-                    .route("/evolution", web::get().to(evolution::handlers::get_evolution))
-                    // Cardio
-                    .route("/cardio", web::get().to(cardio::handlers::list))
-                    .route("/cardio", web::post().to(cardio::handlers::create))
-                    .route("/cardio/{id}", web::delete().to(cardio::handlers::delete)),
+                    .route("/evolution", web::get().to(evolution::handlers::get_evolution)),
             )
     })
     .bind(&bind_addr)?

@@ -34,12 +34,6 @@ export function ConfigPage() {
   const [profileEmail, setProfileEmail] = useState(user?.email ?? "");
   const [profileMsg, setProfileMsg] = useState("");
 
-  // Password
-  const [editingPassword, setEditingPassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [passwordMsg, setPasswordMsg] = useState("");
-
   // Delete
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -58,20 +52,6 @@ export function ConfigPage() {
       setTimeout(() => setProfileMsg(""), 3000);
     } catch {
       setProfileMsg("Erro ao atualizar perfil.");
-    }
-  }
-
-  async function handleChangePassword(e: FormEvent) {
-    e.preventDefault();
-    try {
-      await authService.changePassword({ current_password: currentPassword, new_password: newPassword });
-      setPasswordMsg("Senha alterada!");
-      setEditingPassword(false);
-      setCurrentPassword("");
-      setNewPassword("");
-      setTimeout(() => setPasswordMsg(""), 3000);
-    } catch {
-      setPasswordMsg("Senha atual incorreta.");
     }
   }
 
@@ -98,24 +78,6 @@ export function ConfigPage() {
     } catch {
       alert("Erro ao exportar dados.");
     }
-  }
-
-  function handleImport() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        JSON.parse(text);
-        alert("Importação disponível quando o backend estiver pronto.");
-      } catch {
-        alert("Arquivo JSON inválido.");
-      }
-    };
-    input.click();
   }
 
   return (
@@ -191,42 +153,6 @@ export function ConfigPage() {
                 <div className="form-actions">
                   <button className="btn btn--primary" type="submit">Salvar</button>
                   <button className="btn btn--secondary" type="button" onClick={() => setEditingProfile(false)}>Cancelar</button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          <div className="divider" />
-
-          {/* Senha */}
-          {!editingPassword ? (
-            <div style={{ padding: "var(--space-lg)" }}>
-              <div className="card__row">
-                <div>
-                  <div className="card__title">Senha</div>
-                  <div className="card__subtitle">Alterar sua senha</div>
-                </div>
-                <button className="btn btn--secondary" onClick={() => setEditingPassword(true)}>
-                  Alterar
-                </button>
-              </div>
-              {passwordMsg && <p style={{ color: "var(--color-success)", fontSize: "var(--text-sm)", marginTop: "var(--space-sm)" }}>{passwordMsg}</p>}
-            </div>
-          ) : (
-            <div style={{ padding: "var(--space-lg)" }}>
-              <form onSubmit={handleChangePassword}>
-                <div className="form-group">
-                  <label className="form-label">Senha atual</label>
-                  <input className="form-input" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Nova senha</label>
-                  <input className="form-input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
-                </div>
-                {passwordMsg && <p className="form-error">{passwordMsg}</p>}
-                <div className="form-actions">
-                  <button className="btn btn--primary" type="submit">Alterar</button>
-                  <button className="btn btn--secondary" type="button" onClick={() => { setEditingPassword(false); setPasswordMsg(""); }}>Cancelar</button>
                 </div>
               </form>
             </div>
