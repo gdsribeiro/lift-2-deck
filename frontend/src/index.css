@@ -629,6 +629,35 @@ h3 {
   animation: shake var(--duration-normal) var(--ease-out);
 }
 
+.password-checklist {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-sm) 0 var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: var(--text-sm);
+}
+
+.password-checklist li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.password-checklist .check-pass {
+  color: var(--color-success);
+}
+
+.password-checklist .check-fail {
+  color: var(--color-text-muted);
+}
+
+.password-checklist .check-error {
+  color: var(--color-danger);
+}
+
 /* ─── Auth Layout ────────────────────────────────── */
 
 .auth-page {

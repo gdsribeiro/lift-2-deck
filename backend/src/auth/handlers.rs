@@ -21,8 +21,17 @@ pub async fn register(
     if body.email.len() > 254 || !body.email.contains('@') {
         return Err(AppError::BadRequest("Invalid email format".to_string()));
     }
-    if body.password.len() < 6 || body.password.len() > 128 {
-        return Err(AppError::BadRequest("Password must be between 6 and 128 characters".to_string()));
+    if body.password.len() < 8 || body.password.len() > 128 {
+        return Err(AppError::BadRequest("Password must be between 8 and 128 characters".to_string()));
+    }
+    if !body.password.chars().any(|c| c.is_uppercase()) {
+        return Err(AppError::BadRequest("Password must contain at least one uppercase letter".to_string()));
+    }
+    if !body.password.chars().any(|c| c.is_ascii_digit()) {
+        return Err(AppError::BadRequest("Password must contain at least one number".to_string()));
+    }
+    if !body.password.chars().any(|c| !c.is_alphanumeric()) {
+        return Err(AppError::BadRequest("Password must contain at least one symbol".to_string()));
     }
 
     let mut conn = pool
