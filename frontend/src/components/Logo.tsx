@@ -7,7 +7,7 @@ interface LogoIconProps {
 }
 
 /**
- * L2D icon mark — carta de baralho com barra/anilhas central e seta-naipe nos cantos.
+ * LiftDeck icon mark — carta de baralho com barra/anilhas central e seta-naipe nos cantos.
  */
 export function Logo({ size = 32, variant = "solid", className }: LogoIconProps) {
   // Versão simplificada para tamanhos pequenos (favicon, ícones)
@@ -29,14 +29,10 @@ export function Logo({ size = 32, variant = "solid", className }: LogoIconProps)
           <rect x="11" y="4" width="42" height="56" rx="5"
             stroke="var(--color-primary-bright, #818cf8)" strokeWidth="2.5" fill="none" />
         )}
-        <text
-          x="32" y="38"
-          textAnchor="middle"
-          fontFamily="var(--font-display, 'Space Grotesk', sans-serif)"
-          fontWeight="700"
-          fontSize="28"
-          fill="var(--color-accent, #f59e0b)"
-        >2</text>
+        <path
+          d="M32,18 L22,34 L28,34 L28,46 L36,46 L36,34 L42,34 Z"
+          fill="#ffffff"
+        />
       </svg>
     );
   }
@@ -62,27 +58,27 @@ export function Logo({ size = 32, variant = "solid", className }: LogoIconProps)
         />
         {/* Itens internos sólidos */}
         <path
-          d="M21,16 L18,20 L20,20 L20,23 L22,23 L22,20 L24,20 Z"
-          fill="var(--color-accent, #f59e0b)"
+          d="M21,12 L18,16 L20,16 L20,19 L22,19 L22,16 L24,16 Z"
+          fill="#ffffff"
         />
         <path
-          d="M43,48 L46,44 L44,44 L44,41 L42,41 L42,44 L40,44 Z"
-          fill="var(--color-accent, #f59e0b)"
+          d="M43,52 L46,48 L44,48 L44,45 L42,45 L42,48 L40,48 Z"
+          fill="#ffffff"
         />
         <line
           x1="20" y1="32" x2="44" y2="32"
-          stroke="var(--color-accent, #f59e0b)"
+          stroke="#ffffff"
           strokeWidth="2"
           strokeLinecap="round"
         />
         <rect x="21" y="26" width="3" height="12" rx="1"
-          fill="var(--color-accent, #f59e0b)" />
+          fill="#ffffff" />
         <rect x="25" y="24" width="3" height="16" rx="1"
-          fill="var(--color-accent, #f59e0b)" />
+          fill="#ffffff" />
         <rect x="36" y="24" width="3" height="16" rx="1"
-          fill="var(--color-accent, #f59e0b)" />
+          fill="#ffffff" />
         <rect x="40" y="26" width="3" height="12" rx="1"
-          fill="var(--color-accent, #f59e0b)" />
+          fill="#ffffff" />
       </svg>
     );
   }
@@ -101,7 +97,7 @@ export function Logo({ size = 32, variant = "solid", className }: LogoIconProps)
       <rect
         x="11" y="4" width="42" height="56" rx="5"
         fill="var(--color-primary-dim, #4f46e5)"
-        transform="rotate(-6 32 32)"
+        transform="rotate(-27 32 32)"
       />
 
       {/* Carta da frente */}
@@ -111,27 +107,27 @@ export function Logo({ size = 32, variant = "solid", className }: LogoIconProps)
           fill="var(--color-primary, #6366f1)"
         />
         <path
-          d="M21,16 L18,20 L20,20 L20,23 L22,23 L22,20 L24,20 Z"
-          fill="var(--color-accent, #f59e0b)"
+          d="M21,12 L18,16 L20,16 L20,19 L22,19 L22,16 L24,16 Z"
+          fill="#ffffff"
         />
         <path
-          d="M43,48 L46,44 L44,44 L44,41 L42,41 L42,44 L40,44 Z"
-          fill="var(--color-accent, #f59e0b)"
+          d="M43,52 L46,48 L44,48 L44,45 L42,45 L42,48 L40,48 Z"
+          fill="#ffffff"
         />
         <line
           x1="20" y1="32" x2="44" y2="32"
-          stroke="var(--color-accent, #f59e0b)"
+          stroke="#ffffff"
           strokeWidth="2"
           strokeLinecap="round"
         />
         <rect x="21" y="26" width="3" height="12" rx="1"
-          fill="var(--color-accent, #f59e0b)" />
+          fill="#ffffff" />
         <rect x="25" y="24" width="3" height="16" rx="1"
-          fill="var(--color-accent, #f59e0b)" />
+          fill="#ffffff" />
         <rect x="36" y="24" width="3" height="16" rx="1"
-          fill="var(--color-accent, #f59e0b)" />
+          fill="#ffffff" />
         <rect x="40" y="26" width="3" height="12" rx="1"
-          fill="var(--color-accent, #f59e0b)" />
+          fill="#ffffff" />
       </g>
     </svg>
   );
@@ -150,7 +146,7 @@ const sizeMap = {
 } as const;
 
 /**
- * Logo completo: ícone + "Lift2Deck" lado a lado.
+ * Logo completo: ícone + "LiftDeck" lado a lado.
  */
 export function LogoFull({ size = "md", variant = "solid", className }: LogoFullProps) {
   const s = sizeMap[size];
@@ -170,9 +166,7 @@ export function LogoFull({ size = "md", variant = "solid", className }: LogoFull
       }}
     >
       <Logo size={s.icon} variant={variant} />
-      <span>
-        Lift<span style={{ color: "var(--color-primary-bright)" }}>2</span>Deck
-      </span>
+      <span>Lift<span style={{ color: "var(--color-primary-bright)" }}>Deck</span></span>
     </span>
   );
 }
@@ -207,7 +201,7 @@ export function LogoHero({ variant = "solid", className }: LogoHeroProps) {
           letterSpacing: "-0.02em",
         }}
       >
-        Lift<span style={{ color: "var(--color-primary-bright)" }}>2</span>Deck
+        Lift<span style={{ color: "var(--color-primary-bright)" }}>Deck</span>
       </span>
     </div>
   );

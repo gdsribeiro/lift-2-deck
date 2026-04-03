@@ -174,7 +174,7 @@ export function DashboardPage() {
       ) : (
         <div className="card onboarding-card" style={{ background: "linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-alt) 100%)" }}>
           <div style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", marginBottom: "var(--space-sm)" }}>
-            Bem-vindo ao Lift2Deck!
+            Bem-vindo ao LiftDeck!
           </div>
           <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", lineHeight: 1.6, marginBottom: "var(--space-lg)" }}>
             Comece criando seus planos de treino em <strong>Configurações &gt; Meus Planos</strong>, ou inicie um <strong>Treino Livre</strong> agora mesmo.

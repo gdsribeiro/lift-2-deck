@@ -72,7 +72,7 @@ export function ConfigPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `lift2deck-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.download = `liftdeck-backup-${new Date().toISOString().split("T")[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {

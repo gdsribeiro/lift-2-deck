@@ -18,7 +18,7 @@ export function AppShell() {
   return (
     <div className="app-shell">
       <header className="app-topbar">
-        <span className="app-topbar__brand">Lift<span style={{ color: "var(--color-primary-bright)" }}>2</span>Deck</span>
+        <span className="app-topbar__brand">Lift<span style={{ color: "var(--color-primary-bright)" }}>Deck</span></span>
         <button className="btn btn--ghost btn--icon" onClick={logout} title="Sair">
           <FontAwesomeIcon icon={faArrowRightFromBracket} />
         </button>

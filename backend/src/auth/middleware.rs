@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::errors::AppError;
 
-const JWT_ISSUER: &str = "lift2deck";
+const JWT_ISSUER: &str = "liftdeck";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
