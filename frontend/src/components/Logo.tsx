@@ -93,41 +93,52 @@ export function Logo({ size = 32, variant = "solid", className }: LogoIconProps)
       className={className}
       aria-hidden="true"
     >
-      {/* Carta de trás */}
-      <rect
-        x="11" y="4" width="42" height="56" rx="5"
-        fill="var(--color-primary-dim, #4f46e5)"
-        transform="rotate(-27 32 32)"
-      />
-
-      {/* Carta da frente */}
-      <g transform="rotate(3 32 32)">
+      <defs>
+        <linearGradient id="logo-card-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#818cf8" />
+          <stop offset="100%" stopColor="#4f46e5" />
+        </linearGradient>
+        <filter id="logo-drop">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.35" />
+        </filter>
+      </defs>
+      <g filter="url(#logo-drop)">
+        {/* Carta de trás */}
         <rect
           x="11" y="4" width="42" height="56" rx="5"
-          fill="var(--color-primary, #6366f1)"
+          fill="#3730a3"
+          transform="rotate(-27 32 32)"
         />
-        <path
-          d="M21,12 L18,16 L20,16 L20,19 L22,19 L22,16 L24,16 Z"
-          fill="#ffffff"
-        />
-        <path
-          d="M43,52 L46,48 L44,48 L44,45 L42,45 L42,48 L40,48 Z"
-          fill="#ffffff"
-        />
-        <line
-          x1="20" y1="32" x2="44" y2="32"
-          stroke="#ffffff"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <rect x="21" y="26" width="3" height="12" rx="1"
-          fill="#ffffff" />
-        <rect x="25" y="24" width="3" height="16" rx="1"
-          fill="#ffffff" />
-        <rect x="36" y="24" width="3" height="16" rx="1"
-          fill="#ffffff" />
-        <rect x="40" y="26" width="3" height="12" rx="1"
-          fill="#ffffff" />
+
+        {/* Carta da frente */}
+        <g transform="rotate(3 32 32)">
+          <rect
+            x="11" y="4" width="42" height="56" rx="5"
+            fill="url(#logo-card-grad)"
+          />
+          <path
+            d="M21,12 L18,16 L20,16 L20,19 L22,19 L22,16 L24,16 Z"
+            fill="#ffffff"
+          />
+          <path
+            d="M43,52 L46,48 L44,48 L44,45 L42,45 L42,48 L40,48 Z"
+            fill="#ffffff"
+          />
+          <line
+            x1="20" y1="32" x2="44" y2="32"
+            stroke="#ffffff"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <rect x="21" y="26" width="3" height="12" rx="1"
+            fill="#ffffff" />
+          <rect x="25" y="24" width="3" height="16" rx="1"
+            fill="#ffffff" />
+          <rect x="36" y="24" width="3" height="16" rx="1"
+            fill="#ffffff" />
+          <rect x="40" y="26" width="3" height="12" rx="1"
+            fill="#ffffff" />
+        </g>
       </g>
     </svg>
   );
