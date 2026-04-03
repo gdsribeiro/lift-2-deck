@@ -31,7 +31,7 @@ export function Logo({ size = 32, variant = "solid", className }: LogoIconProps)
         )}
         <path
           d="M32,18 L22,34 L28,34 L28,46 L36,46 L36,34 L42,34 Z"
-          fill="#ffffff"
+          fill={variant === "solid" ? "#ffffff" : "var(--color-primary, #6366f1)"}
         />
       </svg>
     );
@@ -56,29 +56,29 @@ export function Logo({ size = 32, variant = "solid", className }: LogoIconProps)
           strokeWidth="2.5"
           fill="none"
         />
-        {/* Itens internos sólidos */}
+        {/* Itens internos sólidos — indigo para contraste em fundo claro */}
         <path
           d="M21,12 L18,16 L20,16 L20,19 L22,19 L22,16 L24,16 Z"
-          fill="#ffffff"
+          fill="var(--color-primary, #6366f1)"
         />
         <path
           d="M43,52 L46,48 L44,48 L44,45 L42,45 L42,48 L40,48 Z"
-          fill="#ffffff"
+          fill="var(--color-primary, #6366f1)"
         />
         <line
           x1="20" y1="32" x2="44" y2="32"
-          stroke="#ffffff"
+          stroke="var(--color-primary, #6366f1)"
           strokeWidth="2"
           strokeLinecap="round"
         />
         <rect x="21" y="26" width="3" height="12" rx="1"
-          fill="#ffffff" />
+          fill="var(--color-primary, #6366f1)" />
         <rect x="25" y="24" width="3" height="16" rx="1"
-          fill="#ffffff" />
+          fill="var(--color-primary, #6366f1)" />
         <rect x="36" y="24" width="3" height="16" rx="1"
-          fill="#ffffff" />
+          fill="var(--color-primary, #6366f1)" />
         <rect x="40" y="26" width="3" height="12" rx="1"
-          fill="#ffffff" />
+          fill="var(--color-primary, #6366f1)" />
       </svg>
     );
   }
