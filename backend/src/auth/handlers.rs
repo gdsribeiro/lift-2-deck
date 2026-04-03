@@ -12,10 +12,17 @@ use super::middleware::{generate_jwt, generate_refresh_token, AuthenticatedUser}
 use super::models::NewUser;
 use super::supabase::SupabaseClient;
 
+#[derive(Clone)]
+pub struct CookieConfig {
+    pub secure: bool,
+    pub same_site: cookie::SameSite,
+}
+
 pub async fn register(
     pool: web::Data<DbPool>,
     supabase: web::Data<SupabaseClient>,
     jwt_secret: web::Data<String>,
+    cookie_config: web::Data<CookieConfig>,
     body: web::Json<RegisterRequest>,
 ) -> Result<HttpResponse, AppError> {
     if body.email.len() > 254 || !body.email.contains('@') {
@@ -67,7 +74,7 @@ pub async fn register(
         ))
         .execute(&mut conn)?;
 
-    let cookie = build_refresh_cookie(&refresh_token);
+    let cookie = build_refresh_cookie(&refresh_token, &cookie_config);
 
     Ok(HttpResponse::Ok()
         .cookie(cookie)
@@ -81,6 +88,7 @@ pub async fn login(
     pool: web::Data<DbPool>,
     supabase: web::Data<SupabaseClient>,
     jwt_secret: web::Data<String>,
+    cookie_config: web::Data<CookieConfig>,
     body: web::Json<LoginRequest>,
 ) -> Result<HttpResponse, AppError> {
     let mut conn = pool
@@ -120,7 +128,7 @@ pub async fn login(
         ))
         .execute(&mut conn)?;
 
-    let cookie = build_refresh_cookie(&refresh_token);
+    let cookie = build_refresh_cookie(&refresh_token, &cookie_config);
 
     Ok(HttpResponse::Ok()
         .cookie(cookie)
@@ -134,6 +142,7 @@ pub async fn refresh(
     req: HttpRequest,
     pool: web::Data<DbPool>,
     jwt_secret: web::Data<String>,
+    cookie_config: web::Data<CookieConfig>,
 ) -> Result<HttpResponse, AppError> {
     let refresh_token_value = req
         .cookie("refresh_token")
@@ -172,7 +181,7 @@ pub async fn refresh(
         ))
         .execute(&mut conn)?;
 
-    let cookie = build_refresh_cookie(&new_refresh);
+    let cookie = build_refresh_cookie(&new_refresh, &cookie_config);
 
     Ok(HttpResponse::Ok()
         .cookie(cookie)
@@ -186,6 +195,7 @@ pub async fn refresh(
 pub async fn logout(
     req: HttpRequest,
     pool: web::Data<DbPool>,
+    cookie_config: web::Data<CookieConfig>,
 ) -> Result<HttpResponse, AppError> {
     if let Some(token_cookie) = req.cookie("refresh_token") {
         if let Ok(mut conn) = pool.get() {
@@ -200,8 +210,8 @@ pub async fn logout(
     let cookie = cookie::Cookie::build("refresh_token", "")
         .path("/")
         .http_only(true)
-        .secure(true)
-        .same_site(cookie::SameSite::Lax)
+        .secure(cookie_config.secure)
+        .same_site(cookie_config.same_site)
         .max_age(cookie::time::Duration::ZERO)
         .finish();
 
@@ -276,13 +286,12 @@ pub async fn delete_account(
     Ok(HttpResponse::NoContent().finish())
 }
 
-// #3: Added .secure(true) to prevent cookie leaking over HTTP
-fn build_refresh_cookie(token: &str) -> cookie::Cookie<'static> {
+fn build_refresh_cookie(token: &str, config: &CookieConfig) -> cookie::Cookie<'static> {
     cookie::Cookie::build("refresh_token", token.to_string())
         .path("/")
         .http_only(true)
-        .secure(true)
-        .same_site(cookie::SameSite::Lax)
+        .secure(config.secure)
+        .same_site(config.same_site)
         .max_age(cookie::time::Duration::days(7))
         .finish()
 }

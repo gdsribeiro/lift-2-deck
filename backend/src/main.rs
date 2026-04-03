@@ -17,6 +17,7 @@ use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
+use auth::handlers::CookieConfig;
 use auth::middleware::jwt_validator;
 use auth::supabase::SupabaseClient;
 use config::Config;
@@ -37,6 +38,15 @@ async fn main() -> std::io::Result<()> {
         config.supabase_url.clone(),
         config.supabase_service_key.clone(),
     );
+
+    let cookie_config = CookieConfig {
+        secure: config.cookie_secure,
+        same_site: if config.cookie_cross_site {
+            actix_web::cookie::SameSite::None
+        } else {
+            actix_web::cookie::SameSite::Lax
+        },
+    };
 
     // Rate limit: 5 requests per minute per IP on auth endpoints
     let auth_rate_limit = GovernorConfigBuilder::default()
@@ -64,6 +74,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(jwt_secret.clone()))
             .app_data(web::Data::new(supabase.clone()))
             .app_data(web::Data::new(groq_client.clone()))
+            .app_data(web::Data::new(cookie_config.clone()))
             // Public auth routes (rate limited: 5 req/min per IP)
             .service(
                 web::resource("/api/v1/auth/register")
