@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faSun,
+  // faSun,
   faMoon,
   faListCheck,
   faDumbbell,
@@ -19,14 +19,16 @@ function getTheme(): "dark" | "light" {
   return (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
 }
 
-function setTheme(theme: "dark" | "light") {
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("theme", theme);
-}
+// function setTheme(theme: "dark" | "light") {
+//   document.documentElement.setAttribute("data-theme", theme);
+//   localStorage.setItem("theme", theme);
+//   const meta = document.querySelector('meta[name="theme-color"]');
+//   if (meta) meta.setAttribute("content", theme === "dark" ? "#0a0a0a" : "#f5f5f0");
+// }
 
 export function ConfigPage() {
   usePageTitle("Configurações");
-  const [theme, setThemeState] = useState<"dark" | "light">(getTheme);
+  const [_theme] = useState<"dark" | "light">(getTheme);
   const { user, logout } = useAuth();
 
   // Profile
@@ -37,11 +39,11 @@ export function ConfigPage() {
   // Delete
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    setThemeState(next);
-  }
+  // function toggleTheme() {
+  //   const next = theme === "dark" ? "light" : "dark";
+  //   setTheme(next);
+  //   setThemeState(next);
+  // }
 
   async function handleUpdateProfile(e: FormEvent) {
     e.preventDefault();
@@ -109,14 +111,14 @@ export function ConfigPage() {
         <div className="section__header">
           <h2 className="section__title">Aparência</h2>
         </div>
-        <div className="card">
+        <div className="card" style={{ opacity: 0.5, pointerEvents: "none" }}>
           <div className="card__row">
             <div>
               <div className="card__title">Tema</div>
-              <div className="card__subtitle">{theme === "dark" ? "Escuro" : "Claro"}</div>
+              <div className="card__subtitle">Escuro — em breve mais opções</div>
             </div>
-            <button className="btn btn--icon btn--secondary" onClick={toggleTheme}>
-              <FontAwesomeIcon icon={theme === "dark" ? faSun : faMoon} />
+            <button className="btn btn--icon btn--secondary" disabled>
+              <FontAwesomeIcon icon={faMoon} />
             </button>
           </div>
         </div>

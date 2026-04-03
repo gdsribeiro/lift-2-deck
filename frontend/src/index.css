@@ -10,19 +10,19 @@
   --color-primary: #6366f1;
   --color-primary-bright: #4f46e5;
   --color-primary-dim: #4f46e5;
-  --color-accent: #f59e0b;
-  --color-accent-bright: #fbbf24;
+  --color-accent: #d97706;
+  --color-accent-bright: #b45309;
 
-  --color-bg: #fafbf7;
-  --color-surface: #eeeeee;
-  --color-surface-alt: #f5f6f1;
-  --color-surface-hover: #eceee8;
+  --color-bg: #f5f5f0;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eceae5;
+  --color-surface-hover: #e4e2dc;
 
   --color-text: #0a0a0a;
-  --color-text-muted: #78716c;
+  --color-text-muted: #64605b;
   --color-text-inverse: #fafaf9;
 
-  --color-border: #e7e5e4;
+  --color-border: #d4d1cc;
   --color-border-focus: var(--color-primary);
 
   --color-success: #22c55e;
@@ -32,9 +32,9 @@
   --color-warning: #f59e0b;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.10);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.14);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.18);
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
 
   --color-primary-alpha-15: rgba(99, 102, 241, 0.15);
@@ -43,7 +43,13 @@
 
   /* Cards — light needs border for contrast */
   --card-border: 1px solid var(--color-border);
-  --card-shadow: var(--shadow-sm);
+  --card-shadow: var(--shadow-md);
+
+  /* Overlays & translucent backgrounds */
+  --color-nav-bg: rgba(245, 245, 240, 0.90);
+  --color-overlay: rgba(0, 0, 0, 0.35);
+  --color-overlay-heavy: rgba(0, 0, 0, 0.50);
+  --color-dialog-bg: rgba(255, 255, 255, 0.95);
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -137,6 +143,11 @@
   /* Cards — dark relies on surface contrast, no border needed */
   --card-border: 1px solid transparent;
   --card-shadow: var(--shadow-sm);
+
+  --color-nav-bg: rgba(19, 21, 15, 0.85);
+  --color-overlay: rgba(0, 0, 0, 0.4);
+  --color-overlay-heavy: rgba(0, 0, 0, 0.6);
+  --color-dialog-bg: rgba(29, 31, 25, 0.95);
 
   --chart-stroke: #a5b4fc;
   --chart-fill-start: rgba(165, 180, 252, 0.3);
@@ -265,7 +276,7 @@ h3 {
   left: 0;
   right: 0;
   height: var(--nav-height);
-  background: rgba(255, 255, 254, 0.85);
+  background: var(--color-nav-bg);
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
@@ -273,10 +284,6 @@ h3 {
   z-index: 100;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-}
-
-[data-theme="dark"] .bottom-nav {
-  background: rgba(19, 21, 15, 0.85);
 }
 
 .nav-link {
@@ -870,7 +877,7 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--color-overlay);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: fadeIn var(--duration-fast) var(--ease-out);
@@ -882,7 +889,7 @@ h3 {
 }
 
 .rest-dialog {
-  background: rgba(245, 246, 241, 0.95);
+  background: var(--color-dialog-bg);
   border: 1px solid rgba(251, 191, 36, 0.3);
   border-radius: var(--radius-xl);
   padding: var(--space-xl) var(--space-xl) var(--space-lg);
@@ -890,10 +897,6 @@ h3 {
   text-align: center;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   animation: scaleIn var(--duration-normal) var(--ease-out);
-}
-
-[data-theme="dark"] .rest-dialog {
-  background: rgba(29, 31, 25, 0.95);
 }
 
 @keyframes scaleIn {
@@ -2080,7 +2083,7 @@ h3 {
   align-items: center;
   justify-content: center;
   padding: var(--space-xl);
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--color-overlay-heavy);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: fadeIn var(--duration-fast) var(--ease-out);
