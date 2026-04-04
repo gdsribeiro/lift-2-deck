@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LiftDeck — Seu treino. Suas cartas.</title>
+  <meta name="description" content="Seu tracker de treino pessoal. Registre séries, acompanhe sua evolução e monte treinos personalizados.">
+  <meta name="theme-color" content="#0a0a0a">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="LiftDeck — Seu treino. Suas cartas.">
+  <meta property="og:description" content="Registre séries, acompanhe sua evolução e monte treinos do seu jeito. Gratuito e sem compromisso.">
+  <meta property="og:image" content="/assets/og-image.png">
+  <meta property="og:locale" content="pt_BR">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LiftDeck — Seu treino. Suas cartas.">
+  <meta name="twitter:description" content="Registre séries, acompanhe sua evolução e monte treinos do seu jeito. Gratuito.">
+  <meta name="twitter:image" content="/assets/og-image.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Dark */
+      --dark-bg: #0a0a0a;
+      --dark-text: #f5f5f3;
+      --dark-muted: #b5b2ab;
+      /* Light */
+      --light-bg: #f5f5f0;
+      --light-surface: #ffffff;
+      --light-text: #0a0a0a;
+      --light-muted: #64605b;
+      --light-border: #d4d1cc;
+      /* Brand */
+      --primary: #6366f1;
+      --bright: #818cf8;
+      --hover: #4f46e5;
+      /* Typography */
+      --font-display: "Space Grotesk", sans-serif;
+      --font-body: "Inter", sans-serif;
+      /* Shape */
+      --radius-card: 14px;
+      --radius-pill: 9999px;
+      /* Motion */
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--dark-text);
+      background: var(--dark-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Parallax Wrapper (Hero + Features) ── */
+    .parallax-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .parallax-wrap__bg {
+      position: absolute;
+      top: 0;
+      left: -5%;
+      width: 110%;
+      height: 100%;
+      background-image: url('/assets/hero-bg.png');
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+      will-change: transform;
+      z-index: 0;
+    }
+
+    .parallax-wrap__bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.75);
+    }
+
+    .parallax-wrap > *:not(.parallax-wrap__bg) {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 2rem 1.5rem;
+      gap: 1.25rem;
+    }
+
+    .hero-logo {
+      width: clamp(160px, 22vw, 260px);
+      height: auto;
+    }
+
+    .hero-headline {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      color: var(--dark-text);
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
+      color: var(--dark-muted);
+      line-height: 1.5;
+      max-width: 440px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: bounce 2s infinite;
+    }
+
+    .scroll-hint svg {
+      width: 24px;
+      height: 24px;
+      opacity: 0.4;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    .hero-hint {
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+      color: var(--dark-muted);
+      opacity: 0.7;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1rem;
+      color: #ffffff;
+      background: var(--primary);
+      border: none;
+      border-radius: var(--radius-pill);
+      padding: 0.875rem 2.5rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+      margin-top: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      background: var(--hover);
+      box-shadow: 0 0 24px rgba(99, 102, 241, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary:focus-visible {
+      outline: 2px solid var(--bright);
+      outline-offset: 3px;
+    }
+
+    /* ── Features ── */
+    .features {
+      padding: 5rem 1.5rem;
+    }
+
+    .features-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .features-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--dark-text);
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: rgba(26, 26, 26, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-card);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 1rem;
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--dark-text);
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      color: var(--dark-muted);
+      line-height: 1.5;
+    }
+
+    /* ── How it works ── */
+    .how-it-works {
+      background: var(--light-bg);
+      padding: 5rem 1.5rem;
+    }
+
+    .how-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .how-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--light-text);
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .how-steps {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      counter-reset: step;
+    }
+
+    .how-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.25rem;
+    }
+
+    .how-icon-wrap {
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--primary) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+
+    .how-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .how-step h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--light-text);
+      margin-bottom: 0.375rem;
+    }
+
+    .how-step p {
+      font-size: 0.9375rem;
+      color: var(--light-muted);
+      line-height: 1.5;
+    }
+
+    .how-step-arrow {
+      display: none;
+      color: var(--primary);
+      flex-shrink: 0;
+      opacity: 0.4;
+    }
+
+    /* ── CTA Final ── */
+    .cta-final {
+      background: var(--dark-bg);
+      padding: 4rem 1.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    /* ── Demo Deck ── */
+    .demo {
+      background: var(--dark-bg);
+      padding: 5rem 1.5rem 2rem;
+    }
+
+    .demo-inner {
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .demo-phone {
+      position: relative;
+      border: 1px solid #2a2a2a;
+      border-radius: 24px;
+      padding: 1.25rem 1rem;
+      background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+      overflow: hidden;
+    }
+
+    .demo-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--dark-text);
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .demo-stack {
+      position: relative;
+    }
+
+    .demo-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #1a1a1a;
+      border: 2px solid #2a2a2a;
+      transition: transform 0.4s var(--ease), opacity 0.4s var(--ease), box-shadow 0.4s var(--ease);
+      will-change: transform, opacity;
+    }
+
+    .demo-card--active {
+      position: relative;
+      z-index: 10;
+      border: none;
+      padding: 2px;
+      background: linear-gradient(135deg, var(--demo-color), var(--bright), var(--demo-color));
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px color-mix(in srgb, var(--demo-color) 20%, transparent);
+      animation: demoCardDeal 0.4s var(--ease);
+    }
+
+    .demo-card--active .demo-card__inner {
+      background: #1a1a1a;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .demo-card--next-1 {
+      z-index: 5;
+      opacity: 0.55;
+      transform: translateX(8px) translateY(4px) scale(0.96);
+      pointer-events: none;
+    }
+
+    .demo-card--next-2 {
+      z-index: 4;
+      opacity: 0.3;
+      transform: translateX(16px) translateY(8px) scale(0.92);
+      pointer-events: none;
+    }
+
+    .demo-card--done {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-30%) scale(0.9);
+    }
+
+    .demo-card__topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--demo-color) 12%, transparent), transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--demo-color) 20%, transparent);
+    }
+
+    .demo-card__number {
+      font-family: var(--font-body);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--demo-color);
+      letter-spacing: 0.08em;
+    }
+
+    .demo-card__type {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 0.5rem;
+      border-radius: 9999px;
+      font-family: var(--font-body);
+      font-size: 0.5625rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: color-mix(in srgb, var(--demo-color) 15%, transparent);
+      color: var(--demo-color);
+      border: 1px solid color-mix(in srgb, var(--demo-color) 30%, transparent);
+    }
+
+    .demo-card__type-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .demo-card__art {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem 0 0.5rem;
+      position: relative;
+    }
+
+    .demo-card__art::before {
+      content: "";
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--demo-color) 20%, transparent), transparent 70%);
+    }
+
+    .demo-card__art-frame {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #222, color-mix(in srgb, var(--demo-color) 8%, transparent));
+      border: 2px solid color-mix(in srgb, var(--demo-color) 40%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--demo-color) 8%, transparent);
+    }
+
+    .demo-card__art-frame svg {
+      width: 26px;
+      height: 26px;
+      color: var(--demo-color);
+      filter: drop-shadow(0 0 6px color-mix(in srgb, var(--demo-color) 40%, transparent));
+    }
+
+    .demo-card__name {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 700;
+      text-align: center;
+      color: #f5f5f3;
+      padding: 0 1rem 0.5rem;
+    }
+
+    .demo-card__divider {
+      height: 1px;
+      margin: 0 1rem;
+      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--demo-color) 40%, transparent), transparent);
+    }
+
+    .demo-card__form {
+      padding: 1rem;
+      display: flex;
+      gap: 0.625rem;
+      align-items: flex-end;
+    }
+
+    .demo-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .demo-field label {
+      font-family: var(--font-body);
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #999;
+    }
+
+    .demo-field input {
+      width: 100%;
+      padding: 0.625rem 0.75rem;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #111;
+      color: #f5f5f3;
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .demo-field input:focus {
+      border-color: var(--demo-color);
+    }
+
+    .demo-field input::placeholder {
+      color: #444;
+      font-weight: 400;
+    }
+
+    .demo-btn {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: none;
+      background: var(--demo-color);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+
+    .demo-btn:hover { opacity: 0.85; }
+    .demo-btn:active { transform: scale(0.95); }
+
+    .demo-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Rest timer — inline below stack */
+    .demo-rest {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+      border-radius: 24px;
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .demo-rest--visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .demo-rest__label {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #888;
+    }
+
+    .demo-rest__ring {
+      width: 100px;
+      height: 100px;
+      position: relative;
+    }
+
+    .demo-rest__ring circle {
+      fill: none;
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+
+    .demo-rest__ring .ring-bg { stroke: #333; }
+
+    .demo-rest__ring .ring-fg {
+      stroke: #fbbf24;
+      stroke-dasharray: 283;
+      stroke-dashoffset: 0;
+      transform: rotate(-90deg);
+      transform-origin: center;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .demo-rest__time {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #fbbf24;
+    }
+
+    .demo-rest__skip {
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #fbbf24;
+      background: none;
+      border: 1px solid color-mix(in srgb, #fbbf24 30%, transparent);
+      border-radius: var(--radius-pill);
+      padding: 0.5rem 1.25rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .demo-rest__skip:hover {
+      background: color-mix(in srgb, #fbbf24 10%, transparent);
+    }
+
+    /* Completion — inline, not a card */
+    .demo-done {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+      border-radius: 24px;
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s var(--ease);
+    }
+
+    .demo-done--visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .demo-done__check {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+    }
+
+    .demo-done__check svg {
+      width: 28px;
+      height: 28px;
+      color: var(--bright);
+    }
+
+    .demo-done__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: #f5f5f3;
+      margin-bottom: 1.25rem;
+    }
+
+    .demo-done__stats {
+      display: flex;
+      gap: 1px;
+      background: #222;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .demo-done__stat {
+      flex: 1;
+      padding: 0.75rem 0.5rem;
+      background: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .demo-done__stat-value {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--bright);
+    }
+
+    .demo-done__stat-label {
+      font-family: var(--font-body);
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #999;
+    }
+
+    .demo-reset {
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--dark-muted);
+      background: none;
+      border: 1px solid #333;
+      border-radius: var(--radius-pill);
+      padding: 0.5rem 1.5rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .demo-reset:hover {
+      border-color: var(--bright);
+      color: var(--bright);
+    }
+
+    @keyframes demoCardDeal {
+      from { opacity: 0.5; transform: rotate(3deg) translateX(20px) translateY(-10px); }
+      to { opacity: 1; transform: rotate(0) translateX(0) translateY(0); }
+    }
+
+    @keyframes demoFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cta-final-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--dark-text);
+    }
+
+    .cta-final-sub {
+      font-family: var(--font-body);
+      font-size: 1rem;
+      color: var(--dark-muted);
+    }
+
+    /* ── FAQ ── */
+    .faq {
+      background: var(--light-bg);
+      padding: 5rem 1.5rem;
+    }
+
+    .faq-inner {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .faq-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--light-text);
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--light-border);
+      padding: 1.25rem 0;
+    }
+
+    .faq-item summary {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--light-text);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .faq-item summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .faq-item summary::after {
+      content: "+";
+      font-size: 1.25rem;
+      color: var(--light-muted);
+      flex-shrink: 0;
+      transition: transform 0.2s var(--ease);
+    }
+
+    .faq-item[open] summary::after {
+      content: "\2212";
+    }
+
+    .faq-item p {
+      font-size: 0.9375rem;
+      color: var(--light-muted);
+      line-height: 1.6;
+      margin-top: 0.75rem;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--dark-bg);
+      border-top: 1px solid #222;
+      padding: 1.5rem;
+    }
+
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .footer-copy {
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+      color: var(--dark-muted);
+    }
+
+    /* ── Responsive ── */
+    @media (min-width: 768px) {
+      .features-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .how-steps {
+        grid-template-columns: 1fr auto 1fr auto 1fr;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .how-step {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .how-step-arrow {
+        display: block;
+      }
+    }
+
+    /* ── Accessibility ── */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .skip-link:focus {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+      width: auto;
+      height: auto;
+      padding: 0.75rem 1.5rem;
+      margin: 0;
+      clip: auto;
+      white-space: normal;
+      background: var(--primary);
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 600;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#features" class="sr-only skip-link">Pular para o conteúdo</a>
+
+  <!-- Hero + Features parallax wrapper -->
+  <div class="parallax-wrap">
+    <div class="parallax-wrap__bg" id="heroBg" aria-hidden="true"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <img src="/assets/logo-hero.svg" alt="LiftDeck" class="hero-logo" />
+    <h1 class="hero-headline">Para quem leva o treino a sério</h1>
+    <p class="subtitle">Registre séries, acompanhe sua evolução e monte treinos do seu jeito.</p>
+    <a href="/app/" class="btn-primary">Começar agora</a>
+    <span class="hero-hint">Gratuito e sem compromisso.</span>
+    <div class="scroll-hint" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#b5b2ab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="features">
+    <div class="features-inner">
+      <div class="features-grid">
+
+        <!-- Card 1: Registre suas series -->
+        <div class="feature-card">
+          <svg class="feature-icon" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="18" width="4" height="12" rx="1.5" fill="#6366f1"/>
+            <rect x="15" y="15" width="4" height="18" rx="1.5" fill="#6366f1"/>
+            <rect x="29" y="15" width="4" height="18" rx="1.5" fill="#6366f1"/>
+            <rect x="34" y="18" width="4" height="12" rx="1.5" fill="#6366f1"/>
+            <line x1="12" y1="24" x2="36" y2="24" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <h3>Nunca mais esqueça seu PR</h3>
+          <p>Cada série registrada. Cada peso anotado. Saiba exatamente de onde partiu e até onde chegou.</p>
+        </div>
+
+        <!-- Card 2: Acompanhe a evolucao -->
+        <div class="feature-card">
+          <svg class="feature-icon" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="8,36 18,26 26,30 40,14" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <circle cx="40" cy="14" r="3" fill="#818cf8"/>
+          </svg>
+          <h3>Veja sua força semana a semana</h3>
+          <p>Gráficos claros que mostram sua evolução real. A motivação que faltava para não parar.</p>
+        </div>
+
+        <!-- Card 3: Monte seu deck -->
+        <div class="feature-card">
+          <svg class="feature-icon" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="10" width="28" height="20" rx="3" fill="#818cf8" transform="rotate(-6 22 20)"/>
+            <rect x="12" y="18" width="28" height="20" rx="3" fill="#6366f1"/>
+          </svg>
+          <h3>Treino organizado, sem planilha</h3>
+          <p>Chega de anotar no bloco de notas. Seu treino montado, acessível e pronto para a academia.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  </div><!-- /parallax-wrap -->
+
+  <!-- How it works -->
+  <section class="how-it-works">
+    <div class="how-inner">
+      <h2 class="how-title">Como funciona</h2>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-icon-wrap">
+            <svg class="how-icon" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="8" width="24" height="32" rx="3" fill="#818cf8" opacity="0.5" transform="rotate(-8 20 24)"/>
+              <rect x="14" y="8" width="24" height="32" rx="3" fill="#818cf8" opacity="0.7" transform="rotate(0 26 24)"/>
+              <rect x="18" y="8" width="24" height="32" rx="3" fill="#6366f1" transform="rotate(6 30 24)"/>
+              <line x1="24" y1="18" x2="36" y2="18" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+              <line x1="24" y1="23" x2="33" y2="23" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Monte seu deck</h3>
+            <p>Escolha exercícios e organize seus dias de treino.</p>
+          </div>
+        </div>
+        <svg class="how-step-arrow" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+        <div class="how-step">
+          <div class="how-icon-wrap">
+            <svg class="how-icon" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="20" width="5" height="8" rx="1.5" fill="#818cf8"/>
+              <rect x="14" y="16" width="5" height="16" rx="1.5" fill="#818cf8"/>
+              <rect x="29" y="16" width="5" height="16" rx="1.5" fill="#818cf8"/>
+              <rect x="35" y="20" width="5" height="8" rx="1.5" fill="#818cf8"/>
+              <line x1="10.5" y1="24" x2="37.5" y2="24" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="24" cy="24" r="2" fill="#fff" opacity="0.7"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Registre na academia</h3>
+            <p>A cada série, registre peso, reps e esforço.</p>
+          </div>
+        </div>
+        <svg class="how-step-arrow" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+        <div class="how-step">
+          <div class="how-icon-wrap">
+            <svg class="how-icon" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="6,38 14,28 22,32 30,18 38,10" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="38" cy="10" r="3.5" fill="#818cf8"/>
+              <path d="M34 14 L38 10 L42 14" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.6"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Veja o resultado</h3>
+            <p>Acompanhe sua força crescendo com gráficos claros.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo Deck -->
+  <section class="demo">
+    <div class="demo-inner">
+      <h2 class="demo-title">Experimente agora</h2>
+      <div class="demo-phone">
+      <div class="demo-stack" id="demoStack">
+
+        <!-- Card 1: Supino Reto (Peito) -->
+        <div class="demo-card demo-card--active" style="--demo-color: #ef4444" data-name="Supino Reto">
+          <div class="demo-card__inner">
+            <div class="demo-card__topbar">
+              <span class="demo-card__number">#01</span>
+              <span class="demo-card__type"><span class="demo-card__type-dot"></span> FORÇA</span>
+            </div>
+            <div class="demo-card__art">
+              <div class="demo-card__art-frame">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 14h16M8 10v8M16 10v8M12 6v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="5" r="1.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+              </div>
+            </div>
+            <div class="demo-card__name">Supino Reto</div>
+            <div class="demo-card__divider"></div>
+            <div class="demo-card__form">
+              <div class="demo-field">
+                <label>Peso (kg)</label>
+                <input type="number" inputmode="decimal" placeholder="60" data-field="weight">
+              </div>
+              <div class="demo-field">
+                <label>Reps</label>
+                <input type="number" inputmode="numeric" placeholder="10" data-field="reps">
+              </div>
+              <button class="demo-btn" aria-label="Registrar série">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Agachamento Livre (Pernas) -->
+        <div class="demo-card demo-card--next-1" style="--demo-color: #f97316" data-name="Agachamento Livre">
+          <div class="demo-card__inner">
+            <div class="demo-card__topbar">
+              <span class="demo-card__number">#02</span>
+              <span class="demo-card__type"><span class="demo-card__type-dot"></span> FORÇA</span>
+            </div>
+            <div class="demo-card__art">
+              <div class="demo-card__art-frame">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M6 6h12M12 6v4M9 10l-1 6 2 4M15 10l1 6-2 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="8" r="1.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+              </div>
+            </div>
+            <div class="demo-card__name">Agachamento Livre</div>
+            <div class="demo-card__divider"></div>
+            <div class="demo-card__form">
+              <div class="demo-field">
+                <label>Peso (kg)</label>
+                <input type="number" inputmode="decimal" placeholder="80" data-field="weight">
+              </div>
+              <div class="demo-field">
+                <label>Reps</label>
+                <input type="number" inputmode="numeric" placeholder="8" data-field="reps">
+              </div>
+              <button class="demo-btn" aria-label="Registrar série">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Rosca Direta (Braços) -->
+        <div class="demo-card demo-card--next-2" style="--demo-color: #818cf8" data-name="Rosca Direta">
+          <div class="demo-card__inner">
+            <div class="demo-card__topbar">
+              <span class="demo-card__number">#03</span>
+              <span class="demo-card__type"><span class="demo-card__type-dot"></span> FORÇA</span>
+            </div>
+            <div class="demo-card__art">
+              <div class="demo-card__art-frame">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M12 8v8M8 16l4-8M16 16l-4-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="6" r="1.5" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>
+              </div>
+            </div>
+            <div class="demo-card__name">Rosca Direta</div>
+            <div class="demo-card__divider"></div>
+            <div class="demo-card__form">
+              <div class="demo-field">
+                <label>Peso (kg)</label>
+                <input type="number" inputmode="decimal" placeholder="12" data-field="weight">
+              </div>
+              <div class="demo-field">
+                <label>Reps</label>
+                <input type="number" inputmode="numeric" placeholder="12" data-field="reps">
+              </div>
+              <button class="demo-btn" aria-label="Registrar série">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Rest timer — outside the stack -->
+      <div class="demo-rest" id="demoRest">
+        <span class="demo-rest__label">Descanso</span>
+        <div class="demo-rest__ring">
+          <svg viewBox="0 0 100 100" width="100" height="100">
+            <circle class="ring-bg" cx="50" cy="50" r="45"/>
+            <circle class="ring-fg" id="demoRing" cx="50" cy="50" r="45"/>
+          </svg>
+          <span class="demo-rest__time" id="demoTimer">3</span>
+        </div>
+        <button class="demo-rest__skip" id="demoSkip">Pular</button>
+      </div>
+
+      <!-- Completion -->
+      <div class="demo-done" id="demoDone">
+        <div class="demo-done__check">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="demo-done__title">Treino concluído</div>
+        <div class="demo-done__stats" id="demoStats"></div>
+        <button class="demo-reset" id="demoReset">Tentar novamente</button>
+      </div>
+
+      </div><!-- /demo-phone -->
+    </div>
+  </section>
+
+  <!-- CTA Final -->
+  <section class="cta-final">
+    <a href="/app/" class="btn-primary">Registrar meu primeiro treino</a>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq">
+    <div class="faq-inner">
+      <h2 class="faq-title">Perguntas frequentes</h2>
+      <details class="faq-item">
+        <summary>É gratuito?</summary>
+        <p>Sim. O LiftDeck é gratuito e sem compromisso. Crie sua conta e comece a usar agora.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Preciso baixar algum app?</summary>
+        <p>Não. O LiftDeck funciona direto no navegador do seu celular. Você também pode adicionar à tela inicial para acesso rápido, como um app nativo.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Meus dados ficam salvos?</summary>
+        <p>Sim. Seus treinos ficam salvos na nuvem e sincronizam entre dispositivos. Você não perde nada.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="/assets/logo-horizontal-sm.svg" alt="LiftDeck" height="28" />
+    </div>
+    <small class="footer-copy">&copy; 2026 LiftDeck</small>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var stack = document.getElementById('demoStack');
+      var cards = stack.querySelectorAll('.demo-card');
+      var rest = document.getElementById('demoRest');
+      var ring = document.getElementById('demoRing');
+      var timerEl = document.getElementById('demoTimer');
+      var skipBtn = document.getElementById('demoSkip');
+      var done = document.getElementById('demoDone');
+      var statsEl = document.getElementById('demoStats');
+      var resetBtn = document.getElementById('demoReset');
+      var total = cards.length;
+      var current = 0;
+      var logs = [];
+      var restInterval = null;
+      var CIRC = 2 * Math.PI * 45;
+
+      ring.style.strokeDasharray = CIRC;
+
+      function updateCards() {
+        cards.forEach(function (c, i) {
+          c.className = 'demo-card';
+          if (i < current) c.classList.add('demo-card--done');
+          else if (i === current) c.classList.add('demo-card--active');
+          else if (i === current + 1) c.classList.add('demo-card--next-1');
+          else if (i === current + 2) c.classList.add('demo-card--next-2');
+        });
+      }
+
+      function finishRest() {
+        clearInterval(restInterval);
+        restInterval = null;
+        rest.classList.remove('demo-rest--visible');
+
+        current++;
+        updateCards();
+
+        var next = cards[current].querySelector('[data-field="weight"]');
+        if (next) next.focus();
+      }
+
+      function showRest() {
+        var secs = 3;
+
+        rest.classList.add('demo-rest--visible');
+        timerEl.textContent = secs;
+        ring.style.transition = 'none';
+        ring.style.strokeDashoffset = '0';
+
+
+        restInterval = setInterval(function () {
+          secs--;
+          timerEl.textContent = secs;
+          ring.style.transition = 'stroke-dashoffset 1s linear';
+          ring.style.strokeDashoffset = CIRC * (1 - secs / 3);
+          if (secs <= 0) finishRest();
+        }, 1000);
+      }
+
+      skipBtn.addEventListener('click', function () {
+        if (restInterval) finishRest();
+      });
+
+      function makeStat(value, label) {
+        var div = document.createElement('div');
+        div.className = 'demo-done__stat';
+        var val = document.createElement('span');
+        val.className = 'demo-done__stat-value';
+        val.textContent = value;
+        var lbl = document.createElement('span');
+        lbl.className = 'demo-done__stat-label';
+        lbl.textContent = label;
+        div.appendChild(val);
+        div.appendChild(lbl);
+        return div;
+      }
+
+      function showDone() {
+        cards.forEach(function (c) { c.classList.add('demo-card--done'); });
+
+        done.classList.add('demo-done--visible');
+
+
+        var totalVol = 0;
+        logs.forEach(function (l) { totalVol += l.weight * l.reps; });
+
+        statsEl.textContent = '';
+        statsEl.appendChild(makeStat(String(logs.length), 'Exercícios'));
+        statsEl.appendChild(makeStat(totalVol.toLocaleString('pt-BR'), 'Volume (kg)'));
+      }
+
+      function resetDemo() {
+        current = 0;
+        logs = [];
+
+        done.classList.remove('demo-done--visible');
+
+        cards.forEach(function (c) {
+          var btn = c.querySelector('.demo-btn');
+          if (btn) btn.disabled = false;
+          c.querySelectorAll('input').forEach(function (inp) { inp.value = ''; });
+        });
+        updateCards();
+      }
+
+      resetBtn.addEventListener('click', resetDemo);
+
+      cards.forEach(function (card) {
+        var btn = card.querySelector('.demo-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+          var wInput = card.querySelector('[data-field="weight"]');
+          var rInput = card.querySelector('[data-field="reps"]');
+          var w = parseFloat(wInput.value) || parseFloat(wInput.placeholder);
+          var r = parseInt(rInput.value) || parseInt(rInput.placeholder);
+
+          logs.push({ name: card.dataset.name, weight: w, reps: r });
+          btn.disabled = true;
+
+          if (current < total - 1) {
+            showRest();
+          } else {
+            showDone();
+          }
+        });
+      });
+    })();
+
+    // Parallax (respects reduced motion)
+    (function () {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var bgs = document.querySelectorAll('.parallax-wrap__bg');
+      var ticking = false;
+
+      window.addEventListener('scroll', function () {
+        if (!ticking) {
+          requestAnimationFrame(function () {
+            bgs.forEach(function (bg) {
+              var section = bg.parentElement;
+              var rect = section.getBoundingClientRect();
+              if (rect.bottom > 0 && rect.top < window.innerHeight) {
+                var offset = rect.top * -0.25;
+                bg.style.transform = 'translateY(' + offset + 'px)';
+              }
+            });
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, { passive: true });
+    })();
+  </script>
+
+</body>
+</html>

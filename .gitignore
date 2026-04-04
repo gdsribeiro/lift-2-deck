@@ -26,3 +26,5 @@ Thumbs.db
 *.png
 !frontend/public/pwa-icon-*.png
 !frontend/public/apple-touch-icon.png
+!frontend/public/assets/hero-bg.png
+!frontend/static/hero-bg.png
