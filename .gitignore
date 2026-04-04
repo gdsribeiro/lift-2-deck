@@ -24,3 +24,5 @@ Thumbs.db
 
 # Screenshots
 *.png
+!frontend/public/pwa-icon-*.png
+!frontend/public/apple-touch-icon.png
