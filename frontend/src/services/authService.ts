@@ -32,8 +32,8 @@ export async function logout(): Promise<void> {
   await client.post("/auth/logout");
 }
 
-export async function updateProfile(data: { email: string }): Promise<User> {
-  const response = await client.put<User>("/auth/profile", data);
+export async function updateEmail(data: { email: string }): Promise<User> {
+  const response = await client.put<User>("/auth/email", data);
   return response.data;
 }
 

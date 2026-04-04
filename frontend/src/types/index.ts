@@ -7,6 +7,13 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
+  first_name: string;
+  last_name?: string;
+  nickname?: string;
+  birth_date: string;
+  profile_type?: ProfileType;
+  cref_number?: string;
+  social_links?: SocialLinks;
 }
 
 export interface AuthResponse {
@@ -14,9 +21,45 @@ export interface AuthResponse {
   expires_in: number;
 }
 
+export type ProfileType = "regular" | "professional";
+
+export interface SocialLinks {
+  instagram?: string;
+  tiktok?: string;
+  youtube?: string;
+  strava?: string;
+}
+
 export interface User {
   id: string;
   email: string;
+  created_at: string;
+  first_name: string | null;
+  last_name: string | null;
+  nickname: string | null;
+  birth_date: string | null;
+  profile_type: ProfileType;
+  cref_number: string | null;
+  cref_verified: boolean;
+  avatar_url: string | null;
+  avatar_crop: AvatarCrop | null;
+  social_links: SocialLinks;
+}
+
+export interface AvatarCrop {
+  zoom: number;
+  x: number;
+  y: number;
+}
+
+export interface UpdateProfileRequest {
+  first_name?: string;
+  last_name?: string;
+  nickname?: string;
+  birth_date?: string;
+  profile_type?: ProfileType;
+  cref_number?: string;
+  social_links?: SocialLinks;
 }
 
 // ===== Training Plans =====

@@ -5,7 +5,7 @@ export function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="loader">Carregando</div>;
+    return <div className="loader" />;
   }
 
   if (!isAuthenticated) {
