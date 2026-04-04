@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDumbbell, faFire } from "@fortawesome/free-solid-svg-icons";
 import {
   AreaChart,
   Area,
@@ -69,7 +67,7 @@ export function DashboardPage() {
     });
   }, [stats]);
 
-  if (isLoading) return <div className="loader">Carregando</div>;
+  if (isLoading) return <div className="loader" />;
 
   return (
     <div>
@@ -78,7 +76,7 @@ export function DashboardPage() {
       </div>
 
       <Link to={activeSession ? "/session/active" : "/treino"} className="cta-train">
-        <FontAwesomeIcon icon={faDumbbell} />
+        <i className="fa-solid fa-dumbbell" />
         {activeSession ? "Continuar Treino" : "Iniciar Treino"}
       </Link>
 
@@ -100,7 +98,7 @@ export function DashboardPage() {
             <div className="stat-card__value">
               {stats.streak}
               {stats.streak > 0 && (
-                <span className="streak-icon"><FontAwesomeIcon icon={faFire} /></span>
+                <span className="streak-icon"><i className="fa-solid fa-fire" /></span>
               )}
             </div>
             <div className="stat-card__label">dias seguidos</div>
@@ -172,12 +170,12 @@ export function DashboardPage() {
           </div>
         </section>
       ) : (
-        <div className="card onboarding-card" style={{ background: "linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-alt) 100%)" }}>
+        <div className="card onboarding-card" style={{ borderLeft: "3px solid var(--color-primary)" }}>
           <div style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", marginBottom: "var(--space-sm)" }}>
             Bem-vindo ao LiftDeck!
           </div>
           <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", lineHeight: 1.6, marginBottom: "var(--space-lg)" }}>
-            Comece criando seus planos de treino em <strong>Configurações &gt; Meus Planos</strong>, ou inicie um <strong>Treino Livre</strong> agora mesmo.
+            Monte um plano ou inicie um treino livre — voce escolhe como comecar.
           </p>
           <div style={{ display: "flex", gap: "var(--space-md)" }}>
             <Link to="/plans" className="btn btn--secondary" style={{ flex: 1 }}>

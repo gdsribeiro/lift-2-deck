@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { faChevronDown, faFilter, faRobot } from "@fortawesome/free-solid-svg-icons";
 import {
   AreaChart,
   Area,
@@ -122,9 +120,9 @@ export function ProgressPage() {
             style={{ marginBottom: "var(--space-lg)", display: "flex", alignItems: "center", justifyContent: "center", gap: "var(--space-sm)" }}
             onClick={() => setShowFilters(!showFilters)}
           >
-            <FontAwesomeIcon icon={faFilter} />
+            <i className="fa-solid fa-filter" />
             Filtros
-            <FontAwesomeIcon icon={faChevronDown} style={{ transform: showFilters ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
+            <i className="fa-solid fa-chevron-down" style={{ transform: showFilters ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
           </button>
 
           {showFilters && (
@@ -159,9 +157,12 @@ export function ProgressPage() {
           )}
 
           {evoLoading ? (
-            <div className="loader">Carregando</div>
+            <div className="loader" />
           ) : dataPoints.length === 0 ? (
-            <div className="empty"><p className="empty__text">Sem dados para este filtro.</p></div>
+            <div className="empty">
+              <div className="empty__icon"><i className="fa-solid fa-chart-line" /></div>
+              <p className="empty__text">Nenhum dado para este periodo. Tente ampliar o filtro ou complete seu proximo treino.</p>
+            </div>
           ) : (
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height={280}>
@@ -187,7 +188,7 @@ export function ProgressPage() {
       {tab === "history" && (
         <>
           {histLoading && !histLoaded ? (
-            <div className="loader">Carregando</div>
+            <div className="loader" />
           ) : sessions.length === 0 ? (
             <div className="empty"><p className="empty__text">Seu histórico começa no próximo treino.</p></div>
           ) : (
@@ -196,7 +197,7 @@ export function ProgressPage() {
                 const isExpanded = expandedId === session.id;
                 return (
                   <div key={session.id} className={`history-item${isExpanded ? " history-item--expanded" : ""}`}>
-                    <div className="history-header" onClick={() => setExpandedId(isExpanded ? null : session.id)}>
+                    <div className="history-header" role="button" tabIndex={0} onClick={() => setExpandedId(isExpanded ? null : session.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpandedId(isExpanded ? null : session.id); } }}>
                       <div className="history-header__info">
                         <div className="history-header__name">{session.plan_name ?? "Treino Livre"}</div>
                         <div className="history-header__date">
@@ -204,7 +205,7 @@ export function ProgressPage() {
                           {session.notes && ` — ${session.notes}`}
                         </div>
                       </div>
-                      <FontAwesomeIcon icon={faChevronDown} className="history-header__chevron" />
+                      <i className="fa-solid fa-chevron-down history-header__chevron" />
                     </div>
                     {isExpanded && (
                       <div className="history-body">
@@ -222,7 +223,7 @@ export function ProgressPage() {
                         {session.ai_feedback && (
                           <div style={{ marginTop: "var(--space-lg)", padding: "var(--space-md)", borderTop: "1px solid var(--color-border)" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", marginBottom: "var(--space-sm)", fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)" }}>
-                              <FontAwesomeIcon icon={faRobot} />
+                              <i className="fa-solid fa-robot" />
                               <span>Feedback IA</span>
                             </div>
                             <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.5, fontSize: "var(--text-sm)", color: "var(--color-text-muted)" }}>

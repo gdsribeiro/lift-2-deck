@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTrash, faClipboardList } from "@fortawesome/free-solid-svg-icons";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import * as planService from "../services/planService";
 import type { TrainingPlan } from "../types";
@@ -24,20 +22,20 @@ export function PlansPage() {
     setDeleteTarget(null);
   }
 
-  if (isLoading) return <div className="loader">Carregando</div>;
+  if (isLoading) return <div className="loader" />;
 
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">Meus Planos</h1>
         <Link to="/plans/new" className="btn btn--primary">
-          <FontAwesomeIcon icon={faPlus} /> Novo
+          <i className="fa-solid fa-plus" /> Novo
         </Link>
       </div>
 
       {plans.length === 0 ? (
         <div className="empty">
-          <div className="empty__icon"><FontAwesomeIcon icon={faClipboardList} /></div>
+          <div className="empty__icon"><i className="fa-solid fa-clipboard-list" /></div>
           <p className="empty__text">Nenhum plano ainda. Crie o primeiro!</p>
         </div>
       ) : (
@@ -48,7 +46,7 @@ export function PlansPage() {
                 <div className="exercise-name">{plan.name}</div>
               </Link>
               <button className="btn btn--icon btn--ghost" onClick={() => setDeleteTarget(plan)}>
-                <FontAwesomeIcon icon={faTrash} />
+                <i className="fa-solid fa-trash" />
               </button>
             </div>
           ))}

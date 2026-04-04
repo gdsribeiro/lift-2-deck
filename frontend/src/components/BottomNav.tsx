@@ -1,22 +1,15 @@
 import { NavLink } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faHome,
-  faDumbbell,
-  faChartLine,
-  faGear,
-} from "@fortawesome/free-solid-svg-icons";
 
 export function BottomNav({ hasActiveSession }: { hasActiveSession: boolean }) {
   const navItems = [
-    { to: "/", icon: faHome, label: "Home" },
-    { to: hasActiveSession ? "/session/active" : "/treino", icon: faDumbbell, label: "Treino" },
-    { to: "/progress", icon: faChartLine, label: "Progresso" },
-    { to: "/config", icon: faGear, label: "Configurações" },
+    { to: "/", iconClass: "fa-solid fa-home", label: "Home" },
+    { to: hasActiveSession ? "/session/active" : "/treino", iconClass: "fa-solid fa-dumbbell", label: "Treino" },
+    { to: "/progress", iconClass: "fa-solid fa-chart-line", label: "Progresso" },
+    { to: "/profile", iconClass: "fa-solid fa-user", label: "Conta" },
   ];
 
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-nav" aria-label="Navegacao principal">
       {navItems.map((item) => (
         <NavLink
           key={item.label}
@@ -25,7 +18,7 @@ export function BottomNav({ hasActiveSession }: { hasActiveSession: boolean }) {
           className={({ isActive }) => `nav-link${isActive ? " active" : ""}${item.label === "Treino" ? " nav-link--primary" : ""}`}
         >
           <span style={{ position: "relative" }}>
-            <FontAwesomeIcon icon={item.icon} />
+            <i className={item.iconClass} />
             {item.label === "Treino" && hasActiveSession && (
               <span className="nav-badge" />
             )}

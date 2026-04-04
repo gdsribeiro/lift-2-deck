@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTrash, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ExerciseIcon, getGroupColor } from "../components/ExerciseIcon";
 import * as catalogService from "../services/catalogService";
@@ -25,7 +23,7 @@ export function CatalogPage() {
     setDeleteTarget(null);
   }
 
-  if (isLoading) return <div className="loader">Carregando</div>;
+  if (isLoading) return <div className="loader" />;
 
   const byCategory = catalog.reduce<Record<string, CatalogExercise[]>>((acc, c) => {
     (acc[c.category] ??= []).push(c);
@@ -34,19 +32,20 @@ export function CatalogPage() {
 
   return (
     <div>
-      <Link to="/config" className="btn btn--ghost back-link">
-        <FontAwesomeIcon icon={faArrowLeft} /> Configuracoes
+      <Link to="/profile" className="btn btn--ghost back-link">
+        <i className="fa-solid fa-arrow-left" /> Conta
       </Link>
       <div className="page-header">
         <h1 className="page-title">Exercicios</h1>
         <button className="btn btn--primary" disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
-          <FontAwesomeIcon icon={faPlus} /> Novo
+          <i className="fa-solid fa-plus" /> Novo
         </button>
       </div>
 
       {catalog.length === 0 ? (
         <div className="empty">
-          <p className="empty__text">Nenhum exercicio cadastrado.</p>
+          <div className="empty__icon"><i className="fa-solid fa-book-open" /></div>
+          <p className="empty__text">Catalogo vazio. Os exercicios que voce adicionar aparecem aqui.</p>
         </div>
       ) : (
         Object.entries(byCategory).map(([cat, items]) => (
@@ -68,7 +67,7 @@ export function CatalogPage() {
                     </div>
                   </div>
                   <button className="btn btn--icon btn--ghost" disabled style={{ opacity: 0.3, cursor: "not-allowed" }}>
-                    <FontAwesomeIcon icon={faTrash} />
+                    <i className="fa-solid fa-trash" />
                   </button>
                 </div>
               ))}

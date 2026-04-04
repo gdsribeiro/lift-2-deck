@@ -1,16 +1,6 @@
 import { type FormEvent, type TouchEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCheck,
-  faDumbbell,
-  faRobot,
-  faPlus,
-  faTimes,
-  faChevronLeft,
-  faChevronRight,
-} from "@fortawesome/free-solid-svg-icons";
 import * as sessionService from "../services/sessionService";
 import * as planService from "../services/planService";
 import * as catalogService from "../services/catalogService";
@@ -317,7 +307,7 @@ export function ActiveSessionPage() {
     navigate("/");
   }
 
-  if (isLoading) return <div className="loader">Carregando</div>;
+  if (isLoading) return <div className="loader" />;
 
   if (!session) {
     return (
@@ -326,7 +316,7 @@ export function ActiveSessionPage() {
           <h1 className="page-title">Treinar</h1>
         </div>
         <div className="empty">
-          <div className="empty__icon"><FontAwesomeIcon icon={faDumbbell} /></div>
+          <div className="empty__icon"><i className="fa-solid fa-dumbbell" /></div>
           <p className="empty__text">Nenhuma sessao ativa</p>
           <p style={{ color: "var(--color-text-muted)", fontSize: "var(--text-sm)", marginTop: "var(--space-sm)" }}>
             Inicie um treino na aba Treino.
@@ -426,7 +416,7 @@ export function ActiveSessionPage() {
         {feedback && (
           <div className="card feedback-card" style={{ marginBottom: "var(--space-md)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
-              <FontAwesomeIcon icon={faRobot} className="feedback-card__icon" />
+              <i className="fa-solid fa-robot feedback-card__icon" />
               <strong>Feedback do Treino</strong>
             </div>
             <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, color: "var(--color-text-muted)" }}>
@@ -500,7 +490,7 @@ export function ActiveSessionPage() {
             </span>
           )}
           <button className="btn btn--ghost" onClick={() => setShowCancelConfirm(true)} title="Cancelar">
-            <FontAwesomeIcon icon={faTimes} />
+            <i className="fa-solid fa-xmark" />
           </button>
         </div>
       </div>
@@ -646,7 +636,7 @@ export function ActiveSessionPage() {
                               </div>
                             </div>
                             <button className="btn btn--primary btn--full" type="submit" style={{ marginTop: "var(--space-md)" }}>
-                              <FontAwesomeIcon icon={faCheck} /> Registrar
+                              <i className="fa-solid fa-check" /> Registrar
                             </button>
                           </form>
                         ) : (
@@ -657,14 +647,16 @@ export function ActiveSessionPage() {
                             <form onSubmit={handleLogSet}>
                               <div className="form-row">
                                 <div className="form-group">
+                                  <label className="form-label">Peso (kg)</label>
                                   <input className="form-input" type="number" placeholder="kg" value={weight} onChange={(e) => setWeight(e.target.value)} step="0.5" min="0" />
                                 </div>
                                 <div className="form-group">
+                                  <label className="form-label">Reps</label>
                                   <input className="form-input" type="number" placeholder="reps" value={reps} onChange={(e) => setReps(e.target.value)} min="0" />
                                 </div>
                               </div>
                               <button className="btn btn--primary btn--full" type="submit" style={{ marginTop: "var(--space-md)" }}>
-                                <FontAwesomeIcon icon={faCheck} /> Registrar
+                                <i className="fa-solid fa-check" /> Registrar
                               </button>
                             </form>
                           </>
@@ -696,7 +688,7 @@ export function ActiveSessionPage() {
             disabled={!canGoPrev || timer.isRunning}
             aria-label="Exercício anterior"
           >
-            <FontAwesomeIcon icon={faChevronLeft} />
+            <i className="fa-solid fa-chevron-left" />
           </button>
           <span className="card-nav__indicator">
             {totalCount - doneCount} restantes
@@ -707,7 +699,7 @@ export function ActiveSessionPage() {
             disabled={!canGoNext || timer.isRunning}
             aria-label="Próximo exercício"
           >
-            <FontAwesomeIcon icon={faChevronRight} />
+            <i className="fa-solid fa-chevron-right" />
           </button>
         </div>
       )}
@@ -721,7 +713,7 @@ export function ActiveSessionPage() {
               onClick={() => setShowPicker(true)}
               style={{ marginTop: "var(--space-md)" }}
             >
-              <FontAwesomeIcon icon={faPlus} /> Adicionar Exercicio
+              <i className="fa-solid fa-plus" /> Adicionar Exercicio
             </button>
           ) : (
             <div className="inline-form" style={{ marginTop: "var(--space-md)" }}>
@@ -794,7 +786,7 @@ export function ActiveSessionPage() {
         disabled={isFinishing || exerciseStates.flatMap((es) => es.sets).length === 0}
         style={{ marginTop: "var(--space-xl)" }}
       >
-        <FontAwesomeIcon icon={faCheck} /> {isFinishing ? "Finalizando..." : "Finalizar Treino"}
+        <i className="fa-solid fa-check" /> {isFinishing ? "Finalizando..." : "Finalizar Treino"}
       </button>
     </div>
   );

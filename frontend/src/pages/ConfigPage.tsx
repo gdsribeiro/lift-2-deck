@@ -1,16 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  // faSun,
-  faMoon,
-  faListCheck,
-  faDumbbell,
-  faDownload,
-  faUpload,
-  faTriangleExclamation,
-} from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../hooks/useAuth";
 import * as authService from "../services/authService";
 import client from "../api/client";
@@ -48,7 +38,7 @@ export function ConfigPage() {
   async function handleUpdateProfile(e: FormEvent) {
     e.preventDefault();
     try {
-      await authService.updateProfile({ email: profileEmail });
+      await authService.updateEmail({ email: profileEmail });
       setProfileMsg("Perfil atualizado!");
       setEditingProfile(false);
       setTimeout(() => setProfileMsg(""), 3000);
@@ -94,7 +84,7 @@ export function ConfigPage() {
           <div className="card__title">Meus Planos</div>
           <div className="card__subtitle">Gerenciar treinos e exercícios</div>
         </div>
-        <FontAwesomeIcon icon={faListCheck} style={{ color: "var(--color-text-muted)", fontSize: "var(--text-lg)" }} />
+        <i className="fa-solid fa-list-check" style={{ color: "var(--color-text-muted)", fontSize: "var(--text-lg)" }} />
       </Link>
 
       {/* Exercicios */}
@@ -103,7 +93,7 @@ export function ConfigPage() {
           <div className="card__title">Exercicios</div>
           <div className="card__subtitle">Cadastrar e gerenciar exercicios</div>
         </div>
-        <FontAwesomeIcon icon={faDumbbell} style={{ color: "var(--color-text-muted)", fontSize: "var(--text-lg)" }} />
+        <i className="fa-solid fa-dumbbell" style={{ color: "var(--color-text-muted)", fontSize: "var(--text-lg)" }} />
       </Link>
 
       {/* Aparencia */}
@@ -118,7 +108,7 @@ export function ConfigPage() {
               <div className="card__subtitle">Escuro — em breve mais opções</div>
             </div>
             <button className="btn btn--icon btn--secondary" disabled>
-              <FontAwesomeIcon icon={faMoon} />
+              <i className="fa-solid fa-moon" />
             </button>
           </div>
         </div>
@@ -172,10 +162,10 @@ export function ConfigPage() {
             </div>
             <div style={{ display: "flex", gap: "var(--space-md)" }}>
               <button className="btn btn--secondary" style={{ flex: 1 }} onClick={handleExport}>
-                <FontAwesomeIcon icon={faDownload} /> Exportar
+                <i className="fa-solid fa-download" /> Exportar
               </button>
               <button className="btn btn--secondary" style={{ flex: 1, opacity: 0.5, cursor: "not-allowed" }} disabled>
-                <FontAwesomeIcon icon={faUpload} /> Importar
+                <i className="fa-solid fa-upload" /> Importar
               </button>
             </div>
           </div>
@@ -191,7 +181,7 @@ export function ConfigPage() {
             ) : (
               <div style={{ borderLeft: "3px solid var(--color-danger)", paddingLeft: "var(--space-lg)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
-                  <FontAwesomeIcon icon={faTriangleExclamation} style={{ color: "var(--color-danger)" }} />
+                  <i className="fa-solid fa-triangle-exclamation" style={{ color: "var(--color-danger)" }} />
                   <strong>Tem certeza?</strong>
                 </div>
                 <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)", marginBottom: "var(--space-lg)" }}>

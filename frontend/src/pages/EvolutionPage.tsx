@@ -122,7 +122,7 @@ export function EvolutionPage() {
 
       {/* Chart */}
       {isLoading ? (
-        <div className="loader">Carregando</div>
+        <div className="loader" />
       ) : dataPoints.length === 0 ? (
         <div className="empty">
           <p className="empty__text">Sem dados para este filtro.</p>

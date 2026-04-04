@@ -1,7 +1,5 @@
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons";
 import { LogoHero } from "../components/Logo";
 import { useAuth } from "../hooks/useAuth";
 import { usePageTitle } from "../hooks/usePageTitle";
@@ -40,14 +38,14 @@ export function LoginPage() {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
+            <label className="form-label" htmlFor="email">Email</label>
             <div className="input-icon-wrap">
-              <FontAwesomeIcon icon={faEnvelope} className="input-icon" aria-hidden="true" />
+              <i className="fa-solid fa-envelope input-icon" aria-hidden="true" />
               <input
                 className="form-input form-input--icon"
                 id="email"
                 type="email"
                 placeholder="seu@email.com"
-                aria-label="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -55,14 +53,14 @@ export function LoginPage() {
             </div>
           </div>
           <div className="form-group">
+            <label className="form-label" htmlFor="password">Senha</label>
             <div className="input-icon-wrap">
-              <FontAwesomeIcon icon={faLock} className="input-icon" aria-hidden="true" />
+              <i className="fa-solid fa-lock input-icon" aria-hidden="true" />
               <input
                 className="form-input form-input--icon"
                 id="password"
                 type="password"
                 placeholder="Senha"
-                aria-label="Senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

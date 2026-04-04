@@ -332,7 +332,6 @@ h3 {
 
 .nav-link--primary.active svg {
   color: var(--color-primary-bright);
-  filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.5));
 }
 
 .nav-badge {
@@ -344,7 +343,6 @@ h3 {
   background: var(--color-primary-bright);
   border-radius: 50%;
   border: 2px solid var(--color-surface);
-  animation: pulse-scale 2s ease-in-out infinite;
 }
 
 /* ─── Page Header ────────────────────────────────── */
@@ -373,11 +371,13 @@ h3 {
               transform var(--duration-fast) var(--ease-out);
 }
 
-.card:hover {
-  box-shadow: var(--shadow-glow);
+a.card:hover,
+button.card:hover {
+  box-shadow: var(--shadow-md);
 }
 
-.card:active {
+a.card:active,
+button.card:active {
   transform: scale(0.985);
 }
 
@@ -485,7 +485,8 @@ h3 {
 
 .cta-train:hover {
   background: var(--color-primary);
-  box-shadow: 0 0 24px rgba(99, 102, 241, 0.3);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .cta-train:active {
@@ -615,6 +616,15 @@ h3 {
   box-shadow: 0 0 0 3px var(--color-primary-alpha-15);
 }
 
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface-alt) inset;
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .form-row {
   display: flex;
   gap: var(--space-md);
@@ -622,6 +632,23 @@ h3 {
 
 .form-row > * {
   flex: 1;
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  padding: var(--space-sm) 0;
+  min-height: 44px;
+}
+
+.form-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .form-actions {
@@ -687,7 +714,6 @@ h3 {
   justify-content: center;
   color: var(--color-primary-bright);
   margin-bottom: var(--space-lg);
-  filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.3));
 }
 
 .auth-title {
@@ -780,10 +806,9 @@ h3 {
     var(--color-primary-alpha-10) 0%,
     var(--color-primary-alpha-04) 100%
   );
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  border: 1px solid var(--color-primary-alpha-15);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-xl);
-  animation: pulse-border 2s ease-in-out infinite;
 }
 
 .session-banner__icon {
@@ -797,7 +822,6 @@ h3 {
   border-radius: var(--radius-md);
   font-size: var(--text-lg);
   flex-shrink: 0;
-  animation: pulse-scale 2s ease-in-out infinite;
 }
 
 .session-banner__text {
@@ -990,7 +1014,6 @@ h3 {
 
 .rest-inline__icon {
   color: var(--color-accent-bright);
-  animation: pulse-scale 1s ease-in-out infinite;
 }
 
 .rest-inline__text {
@@ -1159,7 +1182,7 @@ h3 {
 }
 
 .game-card--active .game-card__type-dot {
-  animation: pulse-scale 2s ease-in-out infinite;
+  background: var(--color-primary-bright);
 }
 
 /* ─── Card: Art Area ─────────────────────────────── */
@@ -2051,15 +2074,6 @@ h3 {
   80% { transform: translateX(2px); }
 }
 
-@keyframes pulse-border {
-  0%, 100% { border-color: rgba(99, 102, 241, 0.25); }
-  50% { border-color: rgba(99, 102, 241, 0.5); }
-}
-
-@keyframes pulse-scale {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
 
 /* ─── Utilities ──────────────────────────────────── */
 

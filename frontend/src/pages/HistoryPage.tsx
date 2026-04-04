@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faRobot } from "@fortawesome/free-solid-svg-icons";
 import * as historyService from "../services/historyService";
 import type { WorkoutSessionDetail } from "../types";
 
@@ -24,7 +22,7 @@ export function HistoryPage() {
 
   const totalPages = Math.ceil(total / 20);
 
-  if (isLoading) return <div className="loader">Carregando</div>;
+  if (isLoading) return <div className="loader" />;
 
   return (
     <div>
@@ -59,7 +57,7 @@ export function HistoryPage() {
                       {session.notes && ` — ${session.notes}`}
                     </div>
                   </div>
-                  <FontAwesomeIcon icon={faChevronDown} className="history-header__chevron" />
+                  <i className="fa-solid fa-chevron-down history-header__chevron" />
                 </div>
 
                 {isExpanded && (
@@ -76,7 +74,7 @@ export function HistoryPage() {
                     {session.ai_feedback && (
                       <div className="ai-feedback" style={{ marginTop: "var(--space-lg)", padding: "var(--space-md)", borderTop: "1px solid var(--color-border)" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", marginBottom: "var(--space-sm)", fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)" }}>
-                          <FontAwesomeIcon icon={faRobot} />
+                          <i className="fa-solid fa-robot" />
                           <span>Feedback IA</span>
                         </div>
                         <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.5, fontSize: "var(--text-sm)", color: "var(--color-text-muted)" }}>

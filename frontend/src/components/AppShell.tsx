@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import { BottomNav } from "./BottomNav";
 import { useAuth } from "../hooks/useAuth";
 import * as sessionService from "../services/sessionService";
@@ -20,7 +18,7 @@ export function AppShell() {
       <header className="app-topbar">
         <span className="app-topbar__brand">Lift<span style={{ color: "var(--color-primary-bright)" }}>Deck</span></span>
         <button className="btn btn--ghost btn--icon" onClick={logout} title="Sair">
-          <FontAwesomeIcon icon={faArrowRightFromBracket} />
+          <i className="fa-solid fa-arrow-right-from-bracket" />
         </button>
       </header>
       <main className="app-main">

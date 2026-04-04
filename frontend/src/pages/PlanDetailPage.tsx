@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTrash, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import * as planService from "../services/planService";
 import * as exerciseService from "../services/exerciseService";
@@ -85,7 +83,7 @@ export function PlanDetailPage() {
     setDeleteTarget(null);
   }
 
-  if (isLoading) return <div className="loader">Carregando</div>;
+  if (isLoading) return <div className="loader" />;
   if (!plan) return <div className="empty"><p className="empty__text">Plano nao encontrado.</p></div>;
 
   const filteredCatalog = searchQuery
@@ -100,7 +98,7 @@ export function PlanDetailPage() {
   return (
     <div>
       <Link to="/plans" className="btn btn--ghost back-link">
-        <FontAwesomeIcon icon={faArrowLeft} /> Planos
+        <i className="fa-solid fa-arrow-left" /> Planos
       </Link>
       <div className="page-header">
         <h1 className="page-title">{plan.name}</h1>
@@ -132,7 +130,7 @@ export function PlanDetailPage() {
                 </div>
               </div>
               <button className="btn btn--icon btn--ghost" onClick={() => setDeleteTarget(exercise)}>
-                <FontAwesomeIcon icon={faTrash} />
+                <i className="fa-solid fa-trash" />
               </button>
             </div>
           ))}
@@ -142,7 +140,7 @@ export function PlanDetailPage() {
       <div className="picker-area">
         {!showPicker && !selected ? (
           <button className="btn btn--secondary btn--full" onClick={() => setShowPicker(true)}>
-            <FontAwesomeIcon icon={faPlus} /> Exercicio
+            <i className="fa-solid fa-plus" /> Exercicio
           </button>
         ) : selected ? (
           <div className="inline-form">
@@ -201,7 +199,7 @@ export function PlanDetailPage() {
               )}
             </div>
             <button className="btn btn--ghost btn--full picker-action" onClick={() => navigate("/catalog/new")}>
-              <FontAwesomeIcon icon={faPlus} /> Criar exercicio
+              <i className="fa-solid fa-plus" /> Criar exercicio
             </button>
             <button className="btn btn--ghost btn--full picker-action" onClick={resetPicker}>
               Cancelar

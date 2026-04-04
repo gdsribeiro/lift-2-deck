@@ -1,8 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import * as catalogService from "../services/catalogService";
 
 export function CreateExercisePage() {
@@ -21,7 +19,7 @@ export function CreateExercisePage() {
   return (
     <div>
       <Link to="/catalog" className="btn btn--ghost back-link">
-        <FontAwesomeIcon icon={faArrowLeft} /> Exercicios
+        <i className="fa-solid fa-arrow-left" /> Exercicios
       </Link>
       <div className="page-header">
         <h1 className="page-title">Novo Exercicio</h1>

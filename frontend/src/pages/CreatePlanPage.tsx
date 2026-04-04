@@ -1,8 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import * as planService from "../services/planService";
 
 export function CreatePlanPage() {
@@ -19,7 +17,7 @@ export function CreatePlanPage() {
   return (
     <div>
       <Link to="/plans" className="btn btn--ghost back-link">
-        <FontAwesomeIcon icon={faArrowLeft} /> Planos
+        <i className="fa-solid fa-arrow-left" /> Planos
       </Link>
       <div className="page-header">
         <h1 className="page-title">Novo Plano</h1>
