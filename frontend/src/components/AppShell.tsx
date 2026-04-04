@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
+import { LogoFull } from "./Logo";
 import { useAuth } from "../hooks/useAuth";
 import * as sessionService from "../services/sessionService";
 
@@ -16,7 +17,7 @@ export function AppShell() {
   return (
     <div className="app-shell">
       <header className="app-topbar">
-        <span className="app-topbar__brand">Lift<span style={{ color: "var(--color-primary-bright)" }}>Deck</span></span>
+        <LogoFull size="sm" />
         <button className="btn btn--ghost btn--icon" onClick={logout} title="Sair">
           <i className="fa-solid fa-arrow-right-from-bracket" />
         </button>

@@ -38,7 +38,8 @@ client.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status !== 401 || originalRequest._retry) {
+    const isAuthEndpoint = originalRequest.url?.startsWith("/auth/");
+    if (error.response?.status !== 401 || originalRequest._retry || isAuthEndpoint) {
       return Promise.reject(error);
     }
 
@@ -70,7 +71,7 @@ client.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null);
       tokenStore.clear();
-      window.location.href = "/login";
+      window.location.href = "/app/login";
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

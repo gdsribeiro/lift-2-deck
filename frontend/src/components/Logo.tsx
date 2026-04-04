@@ -23,7 +23,7 @@ async function loadLogoSvg(file: string): Promise<SVGSVGElement | null> {
   const cached = svgCache.get(file);
   if (cached) return cached.cloneNode(true) as SVGSVGElement;
 
-  const res = await fetch(`/assets/${file}.svg`);
+  const res = await fetch(`${import.meta.env.BASE_URL}assets/${file}.svg`);
   const raw = await res.text();
   const node = sanitizeSvg(raw);
   if (node) svgCache.set(file, node);
@@ -78,7 +78,7 @@ export function Logo({ size = 32, variant = "solid", className }: LogoIconProps)
   );
 }
 
-/* ── Logo horizontal: icon + wordmark ── */
+/* ── Logo horizontal: full SVG (icon + wordmark) ── */
 
 interface LogoFullProps {
   size?: "sm" | "md" | "lg";
@@ -86,32 +86,50 @@ interface LogoFullProps {
   className?: string;
 }
 
-const sizeMap = {
-  sm: { icon: 24, fontSize: "1.125rem" },
-  md: { icon: 32, fontSize: "1.5rem" },
-  lg: { icon: 56, fontSize: "2.5rem" },
+const fullSizeMap = {
+  sm: { w: 89, h: 28 },
+  md: { w: 127, h: 40 },
+  lg: { w: 177, h: 56 },
 } as const;
 
+function resolveFullFile(size: "sm" | "md" | "lg", variant: Variant): string {
+  const suffix = variant === "solid" ? "" : "-outline";
+  return `logo-horizontal${suffix}-${size}`;
+}
+
 export function LogoFull({ size = "md", variant = "solid", className }: LogoFullProps) {
-  const s = sizeMap[size];
+  const containerRef = useRef<HTMLSpanElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  const { w, h } = fullSizeMap[size];
+  const file = resolveFullFile(size, variant);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setLoaded(false);
+
+    loadLogoSvg(file).then((svg) => {
+      if (!svg || !containerRef.current) return;
+      svg.setAttribute("width", String(w));
+      svg.setAttribute("height", String(h));
+      containerRef.current.replaceChildren(svg);
+      setLoaded(true);
+    });
+  }, [file, w, h]);
 
   return (
     <span
+      ref={containerRef}
       className={className}
+      aria-hidden="true"
       style={{
         display: "inline-flex",
-        alignItems: "center",
-        gap: size === "lg" ? "0.75rem" : "0.5rem",
-        fontFamily: "var(--font-display, 'Space Grotesk', sans-serif)",
-        fontWeight: 700,
-        fontSize: s.fontSize,
-        lineHeight: 1,
-        color: "var(--color-text)",
+        width: w,
+        height: h,
+        opacity: loaded ? 1 : 0,
+        transition: "opacity 0.15s",
       }}
-    >
-      <Logo size={s.icon} variant={variant} />
-      <span>Lift<span style={{ color: "var(--color-primary-bright)" }}>Deck</span></span>
-    </span>
+    />
   );
 }
 

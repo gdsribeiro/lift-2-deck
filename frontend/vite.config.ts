@@ -4,10 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/app/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      scope: '/app/',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'assets/*.svg'],
       manifest: {
         name: 'LiftDeck',
@@ -17,7 +19,7 @@ export default defineConfig({
         background_color: '#0a0a0a',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: '/app/',
         icons: [
           {
             src: 'pwa-icon-192.png',

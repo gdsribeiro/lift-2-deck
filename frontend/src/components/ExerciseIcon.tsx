@@ -57,7 +57,7 @@ async function loadSvgNode(file: string): Promise<SVGSVGElement | null> {
   const cached = svgNodeCache.get(file);
   if (cached) return cached.cloneNode(true) as SVGSVGElement;
 
-  const res = await fetch(`/exercises/${file}.svg`);
+  const res = await fetch(`${import.meta.env.BASE_URL}exercises/${file}.svg`);
   const raw = await res.text();
   const node = parseSvgSafely(raw);
   if (node) svgNodeCache.set(file, node);

@@ -20,11 +20,8 @@ export function LoginPage() {
     try {
       await login({ email, password });
       navigate("/");
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: { message?: string } } } })
-          .response?.data?.error?.message;
-      setError(msg || "Email ou senha inválidos.");
+    } catch {
+      setError("Credenciais incorretas!");
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +64,7 @@ export function LoginPage() {
               />
             </div>
           </div>
-          {error && <p className="form-error">{error}</p>}
+          {error && <div className="alert alert--error">{error}</div>}
           <div className="form-actions">
             <button className="btn btn--primary btn--full btn--lg" type="submit" disabled={isLoading}>
               {isLoading ? "Entrando..." : "Entrar"}

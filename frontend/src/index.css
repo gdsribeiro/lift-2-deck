@@ -737,6 +737,21 @@ button.card:active {
   animation: shake var(--duration-normal) var(--ease-out);
 }
 
+.alert {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.alert--error {
+  margin-top: var(--space-md);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+  color: var(--color-danger);
+  animation: shake var(--duration-normal) var(--ease-out);
+}
+
 .password-checklist {
   list-style: none;
   padding: 0;
