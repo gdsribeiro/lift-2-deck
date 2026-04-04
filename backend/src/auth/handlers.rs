@@ -7,10 +7,11 @@ use crate::db::DbPool;
 use crate::errors::AppError;
 use crate::schema::{refresh_tokens, users};
 
-use super::dto::{AuthResponse, LoginRequest, RegisterRequest, UpdateProfileRequest};
+use super::dto::{AuthResponse, LoginRequest, RegisterRequest, UpdateEmailRequest};
 use super::middleware::{generate_jwt, generate_refresh_token, AuthenticatedUser};
 use super::models::NewUser;
 use super::supabase::SupabaseClient;
+use crate::profile;
 
 #[derive(Clone)]
 pub struct CookieConfig {
@@ -41,6 +42,38 @@ pub async fn register(
         return Err(AppError::BadRequest("Password must contain at least one symbol".to_string()));
     }
 
+    let first_name = body.first_name.trim().to_string();
+    if first_name.is_empty() || first_name.len() > 100 {
+        return Err(AppError::BadRequest("First name must be between 1 and 100 characters".to_string()));
+    }
+
+    let birth_date = chrono::NaiveDate::parse_from_str(&body.birth_date, "%Y-%m-%d")
+        .map_err(|_| AppError::BadRequest("Invalid date format, expected YYYY-MM-DD".to_string()))?;
+    profile::handlers::validate_age(&birth_date)?;
+
+    // Validate optional profile_type
+    let profile_type = match &body.profile_type {
+        Some(pt) if pt == "professional" => Some("professional".to_string()),
+        Some(pt) if pt == "regular" => None,
+        Some(_) => return Err(AppError::BadRequest("Profile type must be 'regular' or 'professional'".to_string())),
+        None => None,
+    };
+
+    // Validate CREF if professional
+    let cref_number = match (&profile_type, &body.cref_number) {
+        (Some(_), Some(cref)) => {
+            if cref.trim().is_empty() {
+                return Err(AppError::BadRequest("CREF is required for professionals".to_string()));
+            }
+            Some(cref.trim().to_string())
+        }
+        _ => None,
+    };
+
+    // Validate social links
+    let social_links = body.social_links.as_ref()
+        .map(|sl| serde_json::to_value(sl).unwrap_or_default());
+
     let mut conn = pool
         .get()
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
@@ -54,10 +87,32 @@ pub async fn register(
         return Err(AppError::BadRequest("Email already registered".to_string()));
     }
 
+    // Use provided nickname or generate one
+    let nickname = match &body.nickname {
+        Some(n) if !n.trim().is_empty() => {
+            let trimmed = n.trim().to_string();
+            if trimmed.len() < 3 || trimmed.len() > 40 {
+                return Err(AppError::BadRequest("Nickname must be between 3 and 40 characters".to_string()));
+            }
+            if profile::repository::is_nickname_taken(&mut conn, &trimmed)? {
+                return Err(AppError::BadRequest("Nickname already taken".to_string()));
+            }
+            trimmed
+        }
+        _ => profile::nickname::generate_unique(&mut conn)?,
+    };
+
     let user_id = supabase.sign_up(&body.email, &body.password).await?;
     let new_user = NewUser {
         id: user_id,
         email: body.email.clone(),
+        first_name: Some(first_name),
+        last_name: body.last_name.as_ref().map(|n| n.trim().to_string()),
+        nickname: Some(nickname),
+        birth_date: Some(birth_date),
+        profile_type,
+        cref_number,
+        social_links,
     };
     diesel::insert_into(users::table)
         .values(&new_user)
@@ -107,6 +162,13 @@ pub async fn login(
         let new_user = NewUser {
             id: user_id,
             email: body.email.clone(),
+            first_name: None,
+            last_name: None,
+            nickname: None,
+            birth_date: None,
+            profile_type: None,
+            cref_number: None,
+            social_links: None,
         };
         diesel::insert_into(users::table)
             .values(&new_user)
@@ -218,24 +280,32 @@ pub async fn logout(
     Ok(HttpResponse::Ok().cookie(cookie).finish())
 }
 
-pub async fn me(req: HttpRequest) -> Result<HttpResponse, AppError> {
-    let user = req
+pub async fn me(
+    req: HttpRequest,
+    pool: web::Data<DbPool>,
+) -> Result<HttpResponse, AppError> {
+    let auth_user = req
         .extensions()
         .get::<AuthenticatedUser>()
         .cloned()
         .ok_or(AppError::Unauthorized)?;
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
-        "id": user.user_id,
-        "email": user.email,
-    })))
+    let mut conn = pool
+        .get()
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+    let user: super::models::User = users::table
+        .filter(users::id.eq(auth_user.user_id))
+        .first(&mut conn)?;
+
+    Ok(HttpResponse::Ok().json(user))
 }
 
 // #7: Validate email format before updating
-pub async fn update_profile(
+pub async fn update_email(
     req: HttpRequest,
     pool: web::Data<DbPool>,
-    body: web::Json<UpdateProfileRequest>,
+    body: web::Json<UpdateEmailRequest>,
 ) -> Result<HttpResponse, AppError> {
     if body.email.len() > 254 || !body.email.contains('@') {
         return Err(AppError::BadRequest("Invalid email format".to_string()));
@@ -280,7 +350,8 @@ pub async fn delete_account(
     diesel::delete(users::table.filter(users::id.eq(user.user_id)))
         .execute(&mut conn)?;
 
-    // Best-effort delete from Supabase Auth
+    // Best-effort cleanup from Supabase
+    supabase.delete_avatar(user.user_id).await.ok();
     supabase.delete_user(user.user_id).await.ok();
 
     Ok(HttpResponse::NoContent().finish())

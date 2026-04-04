@@ -114,6 +114,73 @@ impl SupabaseClient {
         Ok(body.user.id)
     }
 
+    pub async fn upload_avatar(
+        &self,
+        user_id: Uuid,
+        file_bytes: Vec<u8>,
+        content_type: &str,
+    ) -> Result<String, AppError> {
+        let ext = match content_type {
+            "image/jpeg" => "jpg",
+            "image/png" => "png",
+            "image/webp" => "webp",
+            _ => {
+                return Err(AppError::BadRequest(
+                    "Only JPEG, PNG and WebP images are allowed".to_string(),
+                ))
+            }
+        };
+
+        let path = format!("{}.{}", user_id, ext);
+
+        let response = self
+            .http
+            .post(format!(
+                "{}/storage/v1/object/avatars/{}",
+                self.base_url, path
+            ))
+            .header("apikey", &self.service_key)
+            .header("Authorization", format!("Bearer {}", self.service_key))
+            .header("Content-Type", content_type)
+            .header("x-upsert", "true")
+            .body(file_bytes)
+            .send()
+            .await
+            .map_err(|e| AppError::ExternalServiceError(e.to_string()))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            eprintln!("Supabase avatar upload failed ({status}): {body}");
+            return Err(AppError::ExternalServiceError(
+                "Failed to upload avatar".to_string(),
+            ));
+        }
+
+        let public_url = format!(
+            "{}/storage/v1/object/public/avatars/{}",
+            self.base_url, path
+        );
+        Ok(public_url)
+    }
+
+    pub async fn delete_avatar(&self, user_id: Uuid) -> Result<(), AppError> {
+        for ext in ["jpg", "png", "webp"] {
+            let path = format!("{}.{}", user_id, ext);
+            self.http
+                .delete(format!(
+                    "{}/storage/v1/object/avatars/{}",
+                    self.base_url, path
+                ))
+                .header("apikey", &self.service_key)
+                .header("Authorization", format!("Bearer {}", self.service_key))
+                .send()
+                .await
+                .ok();
+        }
+        Ok(())
+    }
+
     pub async fn delete_user(&self, user_id: Uuid) -> Result<(), AppError> {
         let response = self
             .http

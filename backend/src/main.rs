@@ -9,12 +9,13 @@ mod exercises;
 mod groq;
 mod history;
 mod plans;
+mod profile;
 mod schema;
 mod sessions;
 
 use actix_cors::Cors;
 use actix_governor::{Governor, GovernorConfigBuilder};
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web::{middleware::{DefaultHeaders, Logger}, web, App, HttpServer};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
 use auth::handlers::CookieConfig;
@@ -55,6 +56,13 @@ async fn main() -> std::io::Result<()> {
         .finish()
         .expect("Failed to create rate limiter");
 
+    // FIX-05: Rate limiting for avatar upload
+    let avatar_rate_limit = GovernorConfigBuilder::default()
+        .seconds_per_request(20)
+        .burst_size(3)
+        .finish()
+        .expect("Failed to create avatar rate limiter");
+
     println!("Starting server at {bind_addr}");
 
     HttpServer::new(move || {
@@ -69,6 +77,11 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .wrap(Logger::default())
+            .wrap(
+                DefaultHeaders::new()
+                    .add(("X-Content-Type-Options", "nosniff"))
+                    .add(("X-Frame-Options", "DENY"))
+            )
             .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(jwt_secret.clone()))
@@ -97,8 +110,17 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api/v1")
                     .wrap(auth_middleware)
                     .route("/auth/me", web::get().to(auth::handlers::me))
-                    .route("/auth/profile", web::put().to(auth::handlers::update_profile))
+                    .route("/auth/email", web::put().to(auth::handlers::update_email))
                     .route("/auth/account", web::delete().to(auth::handlers::delete_account))
+                    // Profile
+                    .route("/profile", web::get().to(profile::handlers::get_profile))
+                    .route("/profile", web::put().to(profile::handlers::update_profile))
+                    .route("/profile/crop", web::put().to(profile::handlers::update_avatar_crop))
+                    .service(
+                        web::resource("/profile/avatar")
+                            .wrap(Governor::new(&avatar_rate_limit))
+                            .route(web::post().to(profile::handlers::upload_avatar))
+                    )
                     // Dashboard
                     .route("/dashboard/stats", web::get().to(dashboard::handlers::get_stats))
                     .route("/dashboard/score", web::get().to(dashboard::handlers::get_score))

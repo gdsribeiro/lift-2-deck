@@ -3,6 +3,16 @@ diesel::table! {
         id -> Uuid,
         email -> Text,
         created_at -> Timestamptz,
+        first_name -> Nullable<Text>,
+        last_name -> Nullable<Text>,
+        nickname -> Nullable<Text>,
+        birth_date -> Nullable<Date>,
+        profile_type -> Text,
+        cref_number -> Nullable<Text>,
+        cref_verified -> Bool,
+        avatar_url -> Nullable<Text>,
+        avatar_crop -> Nullable<Jsonb>,
+        social_links -> Jsonb,
     }
 }
 
