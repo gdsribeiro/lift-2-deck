@@ -1,4 +1,41 @@
+import { useEffect, useRef, useState } from "react";
+
 type Variant = "solid" | "outline";
+
+/* ── SVG loader (same pattern as ExerciseIcon) ── */
+
+const svgCache = new Map<string, SVGSVGElement>();
+
+function sanitizeSvg(raw: string): SVGSVGElement | null {
+  const doc = new DOMParser().parseFromString(raw, "image/svg+xml");
+  const svg = doc.querySelector("svg");
+  if (!svg) return null;
+  svg.querySelectorAll("script").forEach((s) => s.remove());
+  for (const el of svg.querySelectorAll("*")) {
+    for (const attr of Array.from(el.attributes)) {
+      if (attr.name.startsWith("on")) el.removeAttribute(attr.name);
+    }
+  }
+  return svg;
+}
+
+async function loadLogoSvg(file: string): Promise<SVGSVGElement | null> {
+  const cached = svgCache.get(file);
+  if (cached) return cached.cloneNode(true) as SVGSVGElement;
+
+  const res = await fetch(`/assets/${file}.svg`);
+  const raw = await res.text();
+  const node = sanitizeSvg(raw);
+  if (node) svgCache.set(file, node);
+  return node ? (node.cloneNode(true) as SVGSVGElement) : null;
+}
+
+function resolveFile(size: number, variant: Variant): string {
+  if (size <= 32) return variant === "solid" ? "icon-solid-sm" : "icon-outline-sm";
+  return variant === "solid" ? "icon-solid" : "icon-outline";
+}
+
+/* ── Logo icon mark ── */
 
 interface LogoIconProps {
   size?: number;
@@ -6,143 +43,42 @@ interface LogoIconProps {
   className?: string;
 }
 
-/**
- * LiftDeck icon mark — carta de baralho com barra/anilhas central e seta-naipe nos cantos.
- */
 export function Logo({ size = 32, variant = "solid", className }: LogoIconProps) {
-  // Versão simplificada para tamanhos pequenos (favicon, ícones)
-  if (size <= 32) {
-    return (
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 64 64"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={className}
-        aria-hidden="true"
-      >
-        {variant === "solid" ? (
-          <rect x="11" y="4" width="42" height="56" rx="5"
-            fill="var(--color-primary, #6366f1)" />
-        ) : (
-          <rect x="11" y="4" width="42" height="56" rx="5"
-            stroke="var(--color-primary-bright, #818cf8)" strokeWidth="2.5" fill="none" />
-        )}
-        <path
-          d="M32,18 L22,34 L28,34 L28,46 L36,46 L36,34 L42,34 Z"
-          fill={variant === "solid" ? "#ffffff" : "var(--color-primary, #6366f1)"}
-        />
-      </svg>
-    );
-  }
+  const containerRef = useRef<HTMLSpanElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  const file = resolveFile(size, variant);
 
-  // Card 3:4 → 42x56 centered in 64x64 viewBox
-  if (variant === "outline") {
-    return (
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 64 64"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={className}
-        aria-hidden="true"
-      >
-        {/* Carta única vazada, sem deck */}
-        <rect
-          x="11" y="4" width="42" height="56" rx="5"
-          stroke="var(--color-primary-bright, #818cf8)"
-          strokeWidth="2.5"
-          fill="none"
-        />
-        {/* Itens internos sólidos — indigo para contraste em fundo claro */}
-        <path
-          d="M21,12 L18,16 L20,16 L20,19 L22,19 L22,16 L24,16 Z"
-          fill="var(--color-primary, #6366f1)"
-        />
-        <path
-          d="M43,52 L46,48 L44,48 L44,45 L42,45 L42,48 L40,48 Z"
-          fill="var(--color-primary, #6366f1)"
-        />
-        <line
-          x1="20" y1="32" x2="44" y2="32"
-          stroke="var(--color-primary, #6366f1)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <rect x="21" y="26" width="3" height="12" rx="1"
-          fill="var(--color-primary, #6366f1)" />
-        <rect x="25" y="24" width="3" height="16" rx="1"
-          fill="var(--color-primary, #6366f1)" />
-        <rect x="36" y="24" width="3" height="16" rx="1"
-          fill="var(--color-primary, #6366f1)" />
-        <rect x="40" y="26" width="3" height="12" rx="1"
-          fill="var(--color-primary, #6366f1)" />
-      </svg>
-    );
-  }
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setLoaded(false);
+
+    loadLogoSvg(file).then((svg) => {
+      if (!svg || !containerRef.current) return;
+      svg.setAttribute("width", String(size));
+      svg.setAttribute("height", String(size));
+      containerRef.current.replaceChildren(svg);
+      setLoaded(true);
+    });
+  }, [file, size]);
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <span
+      ref={containerRef}
       className={className}
       aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="logo-card-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#818cf8" />
-          <stop offset="100%" stopColor="#4f46e5" />
-        </linearGradient>
-        <filter id="logo-drop">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.35" />
-        </filter>
-      </defs>
-      <g filter="url(#logo-drop)">
-        {/* Carta de trás */}
-        <rect
-          x="11" y="4" width="42" height="56" rx="5"
-          fill="#3730a3"
-          transform="rotate(-27 32 32)"
-        />
-
-        {/* Carta da frente */}
-        <g transform="rotate(3 32 32)">
-          <rect
-            x="11" y="4" width="42" height="56" rx="5"
-            fill="url(#logo-card-grad)"
-          />
-          <path
-            d="M21,12 L18,16 L20,16 L20,19 L22,19 L22,16 L24,16 Z"
-            fill="#ffffff"
-          />
-          <path
-            d="M43,52 L46,48 L44,48 L44,45 L42,45 L42,48 L40,48 Z"
-            fill="#ffffff"
-          />
-          <line
-            x1="20" y1="32" x2="44" y2="32"
-            stroke="#ffffff"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          <rect x="21" y="26" width="3" height="12" rx="1"
-            fill="#ffffff" />
-          <rect x="25" y="24" width="3" height="16" rx="1"
-            fill="#ffffff" />
-          <rect x="36" y="24" width="3" height="16" rx="1"
-            fill="#ffffff" />
-          <rect x="40" y="26" width="3" height="12" rx="1"
-            fill="#ffffff" />
-        </g>
-      </g>
-    </svg>
+      style={{
+        display: "inline-flex",
+        width: size,
+        height: size,
+        opacity: loaded ? 1 : 0,
+        transition: "opacity 0.15s",
+      }}
+    />
   );
 }
+
+/* ── Logo horizontal: icon + wordmark ── */
 
 interface LogoFullProps {
   size?: "sm" | "md" | "lg";
@@ -156,9 +92,6 @@ const sizeMap = {
   lg: { icon: 56, fontSize: "2.5rem" },
 } as const;
 
-/**
- * Logo completo: ícone + "LiftDeck" lado a lado.
- */
 export function LogoFull({ size = "md", variant = "solid", className }: LogoFullProps) {
   const s = sizeMap[size];
 
@@ -182,14 +115,13 @@ export function LogoFull({ size = "md", variant = "solid", className }: LogoFull
   );
 }
 
+/* ── Logo hero: stacked icon + wordmark ── */
+
 interface LogoHeroProps {
   variant?: Variant;
   className?: string;
 }
 
-/**
- * Logo hero para login/onboarding — ícone grande + nome empilhado.
- */
 export function LogoHero({ variant = "solid", className }: LogoHeroProps) {
   return (
     <div

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <!-- Carta vazada -->
+  <rect x="11" y="4" width="42" height="56" rx="5" stroke="#818cf8" stroke-width="2.5" fill="none"/>
+  <!-- Seta superior-esquerda -->
+  <path d="M21,12 L18,16 L20,16 L20,19 L22,19 L22,16 L24,16 Z" fill="#6366f1"/>
+  <!-- Seta inferior-direita -->
+  <path d="M43,52 L46,48 L44,48 L44,45 L42,45 L42,48 L40,48 Z" fill="#6366f1"/>
+  <!-- Barra central -->
+  <line x1="20" y1="32" x2="44" y2="32" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+  <!-- Anilhas -->
+  <rect x="21" y="26" width="3" height="12" rx="1" fill="#6366f1"/>
+  <rect x="25" y="24" width="3" height="16" rx="1" fill="#6366f1"/>
+  <rect x="36" y="24" width="3" height="16" rx="1" fill="#6366f1"/>
+  <rect x="40" y="26" width="3" height="12" rx="1" fill="#6366f1"/>
+</svg>
