@@ -14,7 +14,17 @@ RUN npm run build
 
 FROM nginx:alpine
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+# SPA build output → /app/ subdirectory
+COPY --from=builder /app/dist /usr/share/nginx/html/app
+RUN chmod -R a+r /usr/share/nginx/html/app
+
+# Landing page → root
+COPY --from=builder /app/static/landing.html /usr/share/nginx/html/landing.html
+
+# Favicon → root (for landing page)
+COPY --from=builder /app/public/favicon.svg /usr/share/nginx/html/favicon.svg
+
+# Nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
