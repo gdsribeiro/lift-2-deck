@@ -1,13 +1,14 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { useAuth } from "../hooks/useAuth";
+import { useAvatarPicker } from "../hooks/useAvatarPicker";
 import { AvatarCropper } from "../components/AvatarCropper";
 import { CroppedAvatar } from "../components/CroppedAvatar";
 import * as profileService from "../services/profileService";
 import * as authService from "../services/authService";
 import client from "../api/client";
-import type { AvatarCrop, SocialLinks, ProfileType, User } from "../types";
+import type { SocialLinks, ProfileType, User } from "../types";
 
 function getInitials(firstName: string | null, lastName: string | null): string {
   const f = firstName?.charAt(0)?.toUpperCase() ?? "";
@@ -32,10 +33,15 @@ export function ProfilePage() {
   const [error, setError] = useState("");
 
   // Avatar
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const picker = useAvatarPicker();
   const [isUploading, setIsUploading] = useState(false);
-  const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (picker.pickerError) {
+      setError(picker.pickerError);
+      picker.clearPickerError();
+    }
+  }, [picker.pickerError]);
 
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -80,52 +86,30 @@ export function ProfilePage() {
     setError("");
   }
 
-  function handleFileSelected(file: File) {
-    if (file.size > 2 * 1024 * 1024) {
-      setError("A imagem deve ter no maximo 2 MB.");
-      return;
-    }
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Apenas JPEG, PNG e WebP sao aceitos.");
-      return;
-    }
-    setPendingFile(file);
-    setCropSrc(URL.createObjectURL(file));
-  }
-
-  async function handleCropConfirm(crop: AvatarCrop) {
-    setCropSrc(null);
+  async function handleCropConfirm(cropData: import("../types").AvatarCrop) {
+    const { file, crop } = picker.confirmCrop(cropData);
     setError("");
 
-    if (pendingFile) {
-      setIsUploading(true);
-      try {
-        const uploaded = await profileService.uploadAvatar(pendingFile);
+    setIsUploading(true);
+    try {
+      if (file) {
+        const uploaded = await profileService.uploadAvatar(file);
         const updated = await profileService.updateAvatarCrop(crop);
         const bustUrl = uploaded.avatar_url
           ? `${uploaded.avatar_url}?t=${Date.now()}`
           : uploaded.avatar_url;
         updateUser({ ...uploaded, ...updated, avatar_url: bustUrl });
         setMessage("Avatar atualizado!");
-        setTimeout(() => setMessage(""), 3000);
-      } catch {
-        setError("Erro ao enviar avatar.");
-      } finally {
-        setIsUploading(false);
-        setPendingFile(null);
-      }
-    } else {
-      setIsUploading(true);
-      try {
+      } else {
         const updated = await profileService.updateAvatarCrop(crop);
         updateUser(updated);
         setMessage("Enquadramento atualizado!");
-        setTimeout(() => setMessage(""), 3000);
-      } catch {
-        setError("Erro ao salvar enquadramento.");
-      } finally {
-        setIsUploading(false);
       }
+      setTimeout(() => setMessage(""), 3000);
+    } catch {
+      setError(file ? "Erro ao enviar avatar." : "Erro ao salvar enquadramento.");
+    } finally {
+      setIsUploading(false);
     }
   }
 
@@ -224,7 +208,11 @@ export function ProfilePage() {
 
       {/* Avatar + Info */}
       <div className="card" style={{ textAlign: "center", padding: "var(--space-xl)" }}>
-        <div style={{ position: "relative", display: "inline-block" }}>
+        <div
+          className={isEditing ? "avatar-editable" : undefined}
+          style={isEditing ? undefined : { position: "relative", display: "inline-block" }}
+          onClick={isEditing && !isUploading ? () => { if (user.avatar_url) { picker.openCropper(user.avatar_url); } else { picker.openFilePicker(); } } : undefined}
+        >
           {user.avatar_url ? (
             <CroppedAvatar src={user.avatar_url} crop={user.avatar_crop} size={80} initials={initials} />
           ) : (
@@ -234,10 +222,10 @@ export function ProfilePage() {
           )}
           {isEditing && (
             <>
-              <button type="button" onClick={() => { if (user.avatar_url) { setPendingFile(null); setCropSrc(user.avatar_url); } else { fileInputRef.current?.click(); } }} disabled={isUploading} title={user.avatar_url ? "Editar foto" : "Adicionar foto"} style={{ position: "absolute", bottom: -4, right: -4, width: 28, height: 28, borderRadius: "50%", background: "var(--color-surface)", border: "2px solid var(--color-border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "var(--text-xs)", color: "var(--color-text-muted)" }}>
+              <div className="avatar-editable__overlay">
                 <i className="fa-solid fa-camera" />
-              </button>
-              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileSelected(file); e.target.value = ""; }} />
+              </div>
+              <input ref={picker.fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={(e) => { const file = e.target.files?.[0]; if (file) picker.handleFileChange(file); e.target.value = ""; }} />
             </>
           )}
         </div>
@@ -297,7 +285,7 @@ export function ProfilePage() {
                 <label className="form-label" htmlFor="profileNickname">Apelido</label>
                 <div className="input-icon-wrap">
                   <i className="fa-solid fa-hashtag input-icon" aria-hidden="true" />
-                  <input className="form-input form-input--icon" id="profileNickname" type="text" placeholder={user.nickname ?? "SeuApelido#1234"} value={nickname} onChange={(e) => setNickname(e.target.value)} />
+                  <input className="form-input form-input--icon" id="profileNickname" type="text" placeholder={user.nickname ?? "SeuApelido"} value={nickname} onChange={(e) => setNickname(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))} />
                 </div>
               </div>
               <div className="form-group">
@@ -465,13 +453,13 @@ export function ProfilePage() {
       )}
 
       {/* Cropper modal */}
-      {cropSrc && (
+      {picker.cropSrc && (
         <AvatarCropper
-          src={cropSrc}
-          initialCrop={!pendingFile ? user.avatar_crop : null}
+          src={picker.cropSrc}
+          initialCrop={!picker.pendingFile ? user.avatar_crop : null}
           onConfirm={handleCropConfirm}
-          onCancel={() => { setCropSrc(null); setPendingFile(null); }}
-          onChangePhoto={() => { setCropSrc(null); setPendingFile(null); fileInputRef.current?.click(); }}
+          onCancel={picker.cancelCrop}
+          onChangePhoto={() => { picker.cancelCrop(); picker.openFilePicker(); }}
         />
       )}
     </div>

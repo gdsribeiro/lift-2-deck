@@ -574,6 +574,33 @@ button.card:active {
   flex-shrink: 0;
 }
 
+/* ─── Avatar Editable ────────────────────────────── */
+
+.avatar-editable {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.avatar-editable__overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+  color: #fff;
+  font-size: var(--text-lg);
+  pointer-events: none;
+}
+
+.avatar-editable:hover .avatar-editable__overlay {
+  opacity: 1;
+}
+
 /* ─── Forms ──────────────────────────────────────── */
 
 .form-group {
@@ -582,7 +609,10 @@ button.card:active {
   gap: var(--space-xs);
 }
 
-.form-group + .form-group {
+.form-group + .form-group,
+.form-row + .form-group,
+.form-group + .form-row,
+.form-row + .form-row {
   margin-top: var(--space-lg);
 }
 
@@ -637,18 +667,62 @@ button.card:active {
 .form-checkbox {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-md);
   cursor: pointer;
-  padding: var(--space-sm) 0;
+  padding: var(--space-md) var(--space-lg);
   min-height: 44px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out);
+}
+
+.form-checkbox:hover {
+  border-color: var(--color-text-muted);
+}
+
+.form-checkbox:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-alpha-04);
 }
 
 .form-checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
   width: 20px;
   height: 20px;
-  accent-color: var(--color-primary);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   flex-shrink: 0;
+  position: relative;
+  transition: all var(--duration-fast) var(--ease-out);
+  background: var(--color-surface);
+}
+
+.form-checkbox input[type="checkbox"]:checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.form-checkbox input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 6px;
+  height: 11px;
+  border: solid var(--color-text-inverse);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.form-checkbox span {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  user-select: none;
 }
 
 .form-actions {

@@ -1,8 +1,10 @@
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogoHero } from "../components/Logo";
+import { LogoFull } from "../components/Logo";
 import { AvatarCropper } from "../components/AvatarCropper";
+import { CroppedAvatar } from "../components/CroppedAvatar";
 import { useAuth } from "../hooks/useAuth";
+import { useAvatarPicker } from "../hooks/useAvatarPicker";
 import { usePageTitle } from "../hooks/usePageTitle";
 import * as profileService from "../services/profileService";
 import type { AvatarCrop, ProfileType, SocialLinks } from "../types";
@@ -25,19 +27,28 @@ export function RegisterPage() {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
 
   // Avatar
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const picker = useAvatarPicker();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [avatarCrop, setAvatarCrop] = useState<AvatarCrop | null>(null);
 
   // UI
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
-  const [showOptional, setShowOptional] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    profileService.suggestNickname().then(setNickname).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (picker.pickerError) {
+      setError(picker.pickerError);
+      picker.clearPickerError();
+    }
+  }, [picker.pickerError]);
 
   const maxBirthDate = (() => {
     const d = new Date();
@@ -53,24 +64,12 @@ export function RegisterPage() {
   ];
   const allValid = passwordChecks.every((c) => c.valid);
 
-  function handleAvatarSelected(file: File) {
-    if (file.size > 2 * 1024 * 1024) {
-      setError("A imagem deve ter no maximo 2 MB.");
-      return;
-    }
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Apenas JPEG, PNG e WebP sao aceitos.");
-      return;
-    }
-    setAvatarFile(file);
-    setCropSrc(URL.createObjectURL(file));
-  }
-
-  function handleCropConfirm(crop: AvatarCrop) {
+  function handleCropConfirm(cropData: AvatarCrop) {
+    const { file, crop } = picker.confirmCrop(cropData);
     setAvatarCrop(crop);
-    setCropSrc(null);
-    if (avatarFile) {
-      setAvatarPreview(URL.createObjectURL(avatarFile));
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
     }
   }
 
@@ -146,22 +145,21 @@ export function RegisterPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-hero">
-          <LogoHero />
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "var(--space-lg)" }}>
+          <LogoFull size="lg" />
         </div>
-        <h1 className="auth-title">
-          Criar <span>Conta</span>
-        </h1>
+        <div className="page-header">
+          <h1 className="page-title">Cadastro</h1>
+          <Link to="/login" className="btn btn--secondary" style={{ gap: "var(--space-xs)" }}>
+            <i className="fa-solid fa-arrow-left" />Voltar
+          </Link>
+        </div>
         <form onSubmit={handleSubmit}>
           {/* Avatar */}
           <div style={{ textAlign: "center", marginBottom: "var(--space-xl)" }}>
-            <div style={{ position: "relative", display: "inline-block" }}>
+            <div className="avatar-editable" onClick={() => { if (avatarPreview) { picker.openCropper(avatarPreview); } else { picker.openFilePicker(); } }}>
               {avatarPreview ? (
-                <img
-                  src={avatarPreview}
-                  alt="Avatar"
-                  style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", display: "block" }}
-                />
+                <CroppedAvatar src={avatarPreview} crop={avatarCrop} size={64} initials={initials} />
               ) : (
                 <div style={{
                   width: 64, height: 64, borderRadius: "50%",
@@ -172,53 +170,77 @@ export function RegisterPage() {
                   {initials}
                 </div>
               )}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                title="Adicionar foto"
-                style={{
-                  position: "absolute", bottom: -4, right: -4,
-                  width: 24, height: 24, borderRadius: "50%",
-                  background: "var(--color-surface)", border: "2px solid var(--color-border)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", fontSize: "var(--text-xs)", color: "var(--color-text-muted)",
-                }}
-              >
+              <div className="avatar-editable__overlay">
                 <i className="fa-solid fa-camera" />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleAvatarSelected(file);
-                  e.target.value = "";
-                }}
-              />
+              </div>
+            </div>
+            <input
+              ref={picker.fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) picker.handleFileChange(file);
+                e.target.value = "";
+              }}
+            />
+          </div>
+
+          {/* Nome + Sobrenome */}
+          <div className="form-row">
+            <div className="form-group">
+              <div className="input-icon-wrap">
+                <i className="fa-solid fa-user input-icon" aria-hidden="true" />
+                <input className="form-input form-input--icon" id="firstName" type="text" placeholder="Nome *" aria-label="Nome" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+              </div>
+            </div>
+            <div className="form-group">
+              <input className="form-input" type="text" placeholder="Sobrenome" aria-label="Sobrenome" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
           </div>
 
-          {/* Required fields */}
+          {/* Apelido */}
           <div className="form-group">
             <div className="input-icon-wrap">
-              <i className="fa-solid fa-user input-icon" aria-hidden="true" />
-              <input className="form-input form-input--icon" id="firstName" type="text" placeholder="Seu nome *" aria-label="Nome" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+              <i className="fa-solid fa-hashtag input-icon" aria-hidden="true" />
+              <input className="form-input form-input--icon" type="text" placeholder="Apelido" aria-label="Apelido" value={nickname} onChange={(e) => setNickname(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))} />
             </div>
           </div>
+
+          {/* Data de nascimento */}
           <div className="form-group">
             <div className="input-icon-wrap">
               <i className="fa-solid fa-calendar input-icon" aria-hidden="true" />
               <input className="form-input form-input--icon" id="birthDate" type="date" aria-label="Data de nascimento" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} max={maxBirthDate} required />
             </div>
           </div>
+
+          {/* Email */}
           <div className="form-group">
             <div className="input-icon-wrap">
               <i className="fa-solid fa-envelope input-icon" aria-hidden="true" />
               <input className="form-input form-input--icon" id="email" type="email" placeholder="seu@email.com *" aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
           </div>
+
+          {/* Profissional */}
+          <div className="form-group">
+            <label className="form-checkbox">
+              <input type="checkbox" checked={profileType === "professional"} onChange={(e) => setProfileType(e.target.checked ? "professional" : "regular")} />
+              <span>Sou profissional de Educacao Fisica</span>
+            </label>
+          </div>
+          {profileType === "professional" && (
+            <div className="form-group">
+              <div className="input-icon-wrap">
+                <i className="fa-solid fa-id-badge input-icon" aria-hidden="true" />
+                <input className="form-input form-input--icon" type="text" placeholder="CREF (ex: 123456-G/SP) *" aria-label="CREF" value={crefNumber} onChange={(e) => setCrefNumber(e.target.value.toUpperCase())} />
+              </div>
+            </div>
+          )}
+
+          {/* Senha */}
           <div className="form-group">
             <div className="input-icon-wrap">
               <i className="fa-solid fa-lock input-icon" aria-hidden="true" />
@@ -242,62 +264,23 @@ export function RegisterPage() {
             </div>
           </div>
 
-          {/* Toggle optional fields */}
-          <button
-            type="button"
-            className="btn btn--ghost btn--full"
-            style={{ marginBottom: "var(--space-lg)", fontSize: "var(--text-sm)" }}
-            onClick={() => setShowOptional(!showOptional)}
-          >
-            <i className={`fa-solid fa-chevron-${showOptional ? "up" : "down"}`} style={{ marginRight: "var(--space-sm)" }} />
-            {showOptional ? "Menos opcoes" : "Mais opcoes (opcional)"}
-          </button>
-
-          {showOptional && (
-            <div style={{ marginBottom: "var(--space-lg)" }}>
-              <div className="form-group">
-                <input className="form-input" type="text" placeholder="Sobrenome" aria-label="Sobrenome" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-              </div>
-              <div className="form-group">
+          {/* Redes Sociais */}
+          <div className="form-group">
+            <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", marginBottom: "var(--space-sm)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Redes Sociais</div>
+            {[
+              { key: "instagram" as const, icon: "fa-brands fa-instagram", placeholder: "@seu_perfil" },
+              { key: "tiktok" as const, icon: "fa-brands fa-tiktok", placeholder: "@seu_perfil" },
+              { key: "youtube" as const, icon: "fa-brands fa-youtube", placeholder: "@seu_canal" },
+              { key: "strava" as const, icon: "fa-brands fa-strava", placeholder: "Link do perfil" },
+            ].map((net) => (
+              <div className="form-group" key={net.key}>
                 <div className="input-icon-wrap">
-                  <i className="fa-solid fa-hashtag input-icon" aria-hidden="true" />
-                  <input className="form-input form-input--icon" type="text" placeholder="Apelido (ex: MeuNick#1234)" aria-label="Apelido" value={nickname} onChange={(e) => setNickname(e.target.value)} />
+                  <i className={`${net.icon} input-icon`} aria-hidden="true" />
+                  <input className="form-input form-input--icon" type="text" placeholder={net.placeholder} value={socialLinks[net.key] ?? ""} onChange={(e) => updateSocial(net.key, e.target.value)} />
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-checkbox">
-                  <input type="checkbox" checked={profileType === "professional"} onChange={(e) => setProfileType(e.target.checked ? "professional" : "regular")} />
-                  <span>Sou profissional de Educacao Fisica</span>
-                </label>
-              </div>
-              {profileType === "professional" && (
-                <div className="form-group">
-                  <div className="input-icon-wrap">
-                    <i className="fa-solid fa-id-badge input-icon" aria-hidden="true" />
-                    <input className="form-input form-input--icon" type="text" placeholder="CREF (ex: 123456-G/SP)" aria-label="CREF" value={crefNumber} onChange={(e) => setCrefNumber(e.target.value.toUpperCase())} />
-                  </div>
-                </div>
-              )}
-
-              {/* Social links */}
-              <div style={{ marginTop: "var(--space-md)" }}>
-                <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", marginBottom: "var(--space-sm)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Redes Sociais</div>
-                {[
-                  { key: "instagram" as const, icon: "fa-brands fa-instagram", placeholder: "@seu_perfil" },
-                  { key: "tiktok" as const, icon: "fa-brands fa-tiktok", placeholder: "@seu_perfil" },
-                  { key: "youtube" as const, icon: "fa-brands fa-youtube", placeholder: "@seu_canal" },
-                  { key: "strava" as const, icon: "fa-brands fa-strava", placeholder: "Link do perfil" },
-                ].map((net) => (
-                  <div className="form-group" key={net.key}>
-                    <div className="input-icon-wrap">
-                      <i className={`${net.icon} input-icon`} aria-hidden="true" />
-                      <input className="form-input form-input--icon" type="text" placeholder={net.placeholder} value={socialLinks[net.key] ?? ""} onChange={(e) => updateSocial(net.key, e.target.value)} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
 
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
@@ -311,16 +294,13 @@ export function RegisterPage() {
         </p>
       </div>
 
-      {cropSrc && (
+      {picker.cropSrc && (
         <AvatarCropper
-          src={cropSrc}
+          src={picker.cropSrc}
+          initialCrop={!picker.pendingFile ? avatarCrop : null}
           onConfirm={handleCropConfirm}
-          onCancel={() => { setCropSrc(null); setAvatarFile(null); }}
-          onChangePhoto={() => {
-            setCropSrc(null);
-            setAvatarFile(null);
-            fileInputRef.current?.click();
-          }}
+          onCancel={picker.cancelCrop}
+          onChangePhoto={() => { picker.cancelCrop(); picker.openFilePicker(); }}
         />
       )}
     </div>
