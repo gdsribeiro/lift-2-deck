@@ -94,6 +94,9 @@ pub async fn register(
             if trimmed.len() < 3 || trimmed.len() > 40 {
                 return Err(AppError::BadRequest("Nickname must be between 3 and 40 characters".to_string()));
             }
+            if !trimmed.chars().all(|c| c.is_ascii_alphanumeric()) {
+                return Err(AppError::BadRequest("Nickname must contain only letters and numbers".to_string()));
+            }
             if profile::repository::is_nickname_taken(&mut conn, &trimmed)? {
                 return Err(AppError::BadRequest("Nickname already taken".to_string()));
             }

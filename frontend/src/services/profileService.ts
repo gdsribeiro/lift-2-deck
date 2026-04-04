@@ -24,3 +24,8 @@ export async function updateAvatarCrop(crop: AvatarCrop): Promise<User> {
   const response = await client.put<User>("/profile/crop", { crop });
   return response.data;
 }
+
+export async function suggestNickname(): Promise<string> {
+  const response = await client.get<{ nickname: string }>("/profile/nickname/suggest");
+  return response.data.nickname;
+}

@@ -25,7 +25,7 @@ fn generate_candidate() -> String {
     let adj = ADJECTIVES[rng.gen_range(0..ADJECTIVES.len())];
     let noun = NOUNS[rng.gen_range(0..NOUNS.len())];
     let number: u16 = rng.gen_range(1000..10000);
-    format!("{adj}{noun}#{number:04}")
+    format!("{adj}{noun}{number:04}")
 }
 
 pub fn generate_unique(conn: &mut PgConnection) -> Result<String, AppError> {

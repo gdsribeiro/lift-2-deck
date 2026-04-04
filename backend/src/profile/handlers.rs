@@ -10,6 +10,16 @@ use crate::errors::AppError;
 
 use super::dto::{SocialLinks, UpdateAvatarCropRequest, UpdateProfileRequest};
 use super::models::UpdateProfileData;
+use super::nickname;
+
+pub async fn suggest_nickname(pool: web::Data<DbPool>) -> Result<HttpResponse, AppError> {
+    let mut conn = pool
+        .get()
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+    let suggested = nickname::generate_unique(&mut conn)?;
+    Ok(HttpResponse::Ok().json(serde_json::json!({ "nickname": suggested })))
+}
 use super::repository;
 
 fn get_user(req: &HttpRequest) -> Result<AuthenticatedUser, AppError> {
@@ -81,6 +91,11 @@ pub async fn update_profile(
         if trimmed.len() < 3 || trimmed.len() > 40 {
             return Err(AppError::BadRequest(
                 "Nickname must be between 3 and 40 characters".to_string(),
+            ));
+        }
+        if !trimmed.chars().all(|c| c.is_ascii_alphanumeric()) {
+            return Err(AppError::BadRequest(
+                "Nickname must contain only letters and numbers".to_string(),
             ));
         }
         if repository::is_nickname_taken(&mut conn, trimmed)? {

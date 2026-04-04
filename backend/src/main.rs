@@ -105,6 +105,7 @@ async fn main() -> std::io::Result<()> {
                     .route(web::post().to(auth::handlers::refresh))
             )
             .route("/api/v1/auth/logout", web::post().to(auth::handlers::logout))
+            .route("/api/v1/profile/nickname/suggest", web::get().to(profile::handlers::suggest_nickname))
             // Protected routes
             .service(
                 web::scope("/api/v1")
